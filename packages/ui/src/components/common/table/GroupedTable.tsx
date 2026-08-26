@@ -91,7 +91,7 @@ export default function GroupedTable<TGroup = unknown, TItem = unknown>({
             {columns.map(column => (
               <TableHead
                 key={column.key}
-                className={cn('text-[#6b7280]', column.className)}
+                className={cn('text-muted-foreground', column.className)}
                 style={column.width ? { width: column.width } : undefined}
               >
                 {column.header}
@@ -99,7 +99,7 @@ export default function GroupedTable<TGroup = unknown, TItem = unknown>({
             ))}
 
             {(actions.length > 0 || renderActions) && (
-              <TableHead className="w-40 text-[#6b7280]">Actions</TableHead>
+              <TableHead className="w-40 text-muted-foreground">Actions</TableHead>
             )}
           </TableRow>
         </TableHeader>

@@ -10,11 +10,21 @@ const RUNTIME_ENVIRONMENTS = [
 
 const nonEmptyString = z.string().trim().min(1);
 const secretString = nonEmptyString.min(32);
-const optionalNumberString = z
-  .string()
-  .trim()
-  .regex(/^\d+$/, "Expected a numeric string")
-  .optional();
+const optionalNumberString = z.preprocess(
+  (val) => (val === "" ? undefined : val),
+  z
+    .string()
+    .trim()
+    .regex(/^\d+$/, "Expected a numeric string")
+    .optional(),
+);
+// An unset env var and one left blank (`KEY=`) both parse to `""` via dotenv —
+// `.optional()` alone only treats `undefined` as absent, so a blank value would
+// still fail `nonEmptyString`'s `.min(1)`. This treats `""` as absent too.
+const optionalNonEmptyString = z.preprocess(
+  (val) => (val === "" ? undefined : val),
+  nonEmptyString.optional(),
+);
 
 const urlWithProtocol = (protocols: string[], label: string) =>
   nonEmptyString.refine(
@@ -50,20 +60,20 @@ const baseEnvironmentSchema = z
     RESEND_USER: nonEmptyString,
     RESEND_PASSWORD: nonEmptyString,
 
-    DISCORD_WEBHOOK_URL: nonEmptyString,
-    GOOGLE_CLIENT_ID: nonEmptyString,
-    GOOGLE_CLIENT_SECRET: nonEmptyString,
+    DISCORD_WEBHOOK_URL: optionalNonEmptyString,
+    GOOGLE_CLIENT_ID: optionalNonEmptyString,
+    GOOGLE_CLIENT_SECRET: optionalNonEmptyString,
 
-    DOMAIN: httpUrl.optional(),
+    DOMAIN: z.preprocess((val) => (val === "" ? undefined : val), httpUrl.optional()),
     REDIS_URL: redisUrl,
     RABBITMQ_URL: rabbitmqUrl,
-    // ABSTRACT_API_KEY: nonEmptyString.optional(),
-    LINKEDIN_CLIENT_ID: nonEmptyString.optional(),
-    LINKEDIN_CLIENT_SECRET: nonEmptyString.optional(),
+    // ABSTRACT_API_KEY: optionalNonEmptyString,
+    LINKEDIN_CLIENT_ID: optionalNonEmptyString,
+    LINKEDIN_CLIENT_SECRET: optionalNonEmptyString,
 
-    ACCESS_TOKEN_NAME: nonEmptyString.optional(),
-    REFRESH_TOKEN_NAME: nonEmptyString.optional(),
-    SESSION_TOKEN_NAME: nonEmptyString.optional(),
+    ACCESS_TOKEN_NAME: optionalNonEmptyString,
+    REFRESH_TOKEN_NAME: optionalNonEmptyString,
+    SESSION_TOKEN_NAME: optionalNonEmptyString,
     ACCESS_TOKEN_COOKIE_MAX_AGE: optionalNumberString,
     REFRESH_TOKEN_COOKIE_MAX_AGE: optionalNumberString,
     SESSION_COOKIE_MAX_AGE: optionalNumberString,

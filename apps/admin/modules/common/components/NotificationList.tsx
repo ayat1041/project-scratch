@@ -15,7 +15,7 @@ export default function NotificationList({
   if (notifications.length === 0) {
     return (
       <div className="p-8 text-center">
-        <p className="text-sm text-[#6b7280]">No notifications</p>
+        <p className="text-muted-foreground text-sm">No notifications</p>
       </div>
     );
   }
@@ -27,8 +27,8 @@ export default function NotificationList({
           key={notification.id}
           onClick={() => onNotificationClick(notification.id)}
           className={cn(
-            'flex w-full items-start gap-3 border-b border-gray-100 p-4 text-left transition-colors hover:bg-gray-50',
-            !notification.read && 'bg-blue-50'
+            'border-border hover:bg-muted flex w-full items-start gap-3 border-b p-4 text-left transition-colors',
+            !notification.read && 'bg-info/10'
           )}
         >
           <div className="flex-1">
@@ -36,18 +36,18 @@ export default function NotificationList({
               className={cn(
                 'text-sm',
                 notification.read
-                  ? 'text-[#6b7280]'
-                  : 'font-medium text-[#1e1e1e]'
+                  ? 'text-muted-foreground'
+                  : 'text-foreground font-medium'
               )}
             >
               {notification.title}
             </p>
-            <p className="mt-1 text-sm text-[#9ca3af]">
+            <p className="text-muted-foreground mt-1 text-sm">
               {formatDistanceToNow(notification.time, { addSuffix: true })}
             </p>
           </div>
           {!notification.read && (
-            <div className="mt-1 h-2 w-2 rounded-full bg-blue-600" />
+            <div className="bg-info mt-1 h-2 w-2 rounded-full" />
           )}
         </button>
       ))}

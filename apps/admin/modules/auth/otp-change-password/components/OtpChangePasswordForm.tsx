@@ -103,16 +103,16 @@ export default function OtpChangePasswordForm({
   return (
     <div>
       <div className="mb-[25px] text-center">
-        <p className="text-font-100 text-md">
+        <p className="text-foreground text-md">
           Enter your 6 digit OTP code sent to{' '}
-          <span className="text-text font-semibold">{maskEmail(email)}</span>
+          <span className="text-foreground font-semibold">{maskEmail(email)}</span>
         </p>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {errorMessage && (
-            <div className="border-danger bg-danger/10 text-danger mb-4 rounded border p-3">
+            <div className="border-destructive bg-destructive/10 text-destructive mb-4 rounded border p-3">
               {errorMessage}
             </div>
           )}
@@ -150,14 +150,14 @@ export default function OtpChangePasswordForm({
           />
 
           <div className="text-center">
-            <p className="text-font-100 text-md font-medium">
+            <p className="text-foreground text-md font-medium">
               {"Didn't receive the code? "}
             </p>
             {canResend ? (
               <button
                 type="button"
                 onClick={handleResendCode}
-                className="text-secondary hover:text-secondary-hover cursor-pointer font-medium"
+                className="text-secondary hover:text-secondary/80 cursor-pointer font-medium"
                 data-testid="resend-button"
               >
                 Re-send OTP Code

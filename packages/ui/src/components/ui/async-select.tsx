@@ -178,7 +178,7 @@ export function AsyncSelect<T>({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            'border-gray focus:border-secondary h-9 justify-between px-2.5 py-2.5 !text-base shadow-xs placeholder:!text-base hover:bg-transparent hover:text-current',
+            'border-input focus:border-secondary h-9 justify-between px-2.5 py-2.5 !text-base shadow-xs placeholder:!text-base hover:bg-transparent hover:text-current',
             disabled && 'cursor-not-allowed opacity-50',
             triggerClassName
           )}
@@ -188,7 +188,7 @@ export function AsyncSelect<T>({
           <span
             className={cn(
               'truncate text-base placeholder:text-base',
-              !selectedOption && 'text-font-100'
+              !selectedOption && 'text-muted-foreground'
             )}
           >
             {selectedOption ? getDisplayValue(selectedOption) : placeholder}

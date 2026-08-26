@@ -29,7 +29,7 @@ export default function CheckEmailPage() {
 
           <Suspense
             fallback={
-              <div className="bg-gray-light h-12 w-full animate-pulse rounded-lg"></div>
+              <div className="bg-muted h-12 w-full animate-pulse rounded-lg"></div>
             }
           >
             <CheckEmailForm />

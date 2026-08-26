@@ -325,9 +325,9 @@ function Calendar({
         ),
         selected: cn(
           buttonVariants({ variant: 'ghost' }), // Apply ghost variant styles
-          'bg-gray-light text-foreground', // Static ghost-like background and text color
-          'hover:bg-gray-light', // Prevent hover from changing the background
-          'focus:bg-gray-light', // Prevent focus from changing the background
+          'bg-muted text-foreground', // Static ghost-like background and text color
+          'hover:bg-muted', // Prevent hover from changing the background
+          'focus:bg-muted', // Prevent focus from changing the background
           'rounded-l-md rounded-r-md' // Retain rounded corners
         ),
         range_end: 'day-range-end',
@@ -364,7 +364,7 @@ function Calendar({
                 >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-background-card">
+                <SelectContent className="bg-popover">
                   {MONTHS.map(month => (
                     <SelectItem
                       key={month.value}
@@ -390,7 +390,7 @@ function Calendar({
                 >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-background-card">
+                <SelectContent className="bg-popover">
                   {YEARS.map(year => (
                     <SelectItem
                       key={year.value}

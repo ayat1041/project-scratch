@@ -146,7 +146,7 @@ export default function VerifyEmailHandler() {
     return (
       <div className="flex flex-col items-center justify-center space-y-6 py-12">
         <Loader2 className="text-secondary h-16 w-16 animate-spin" />
-        <p className="text-font-100 text-lg">Verifying your email&hellip;</p>
+        <p className="text-muted-foreground text-lg">Verifying your email&hellip;</p>
       </div>
     );
   }
@@ -158,10 +158,10 @@ export default function VerifyEmailHandler() {
           <CheckCircle className="text-success h-6 w-6" />
         </div>
         <div className="space-y-2 text-center">
-          <h3 className="text-text text-xl font-semibold">
+          <h3 className="text-foreground text-xl font-semibold">
             Email Verified Successfully!
           </h3>
-          <p className="text-font-100 text-base">
+          <p className="text-muted-foreground text-base">
             Your account has been verified. Redirecting you to complete your
             profile&hellip;
           </p>
@@ -177,25 +177,25 @@ export default function VerifyEmailHandler() {
   return (
     <div className="flex flex-col items-center justify-center space-y-6 py-12">
       <div
-        className={`rounded-full p-3 ${emailResent ? 'bg-secondary/10' : 'bg-danger/10'}`}
+        className={`rounded-full p-3 ${emailResent ? 'bg-secondary/10' : 'bg-destructive/10'}`}
       >
         {emailResent ? (
           <Mail className="text-secondary h-6 w-6" />
         ) : isExpiredLink ? (
-          <Clock className="text-danger h-6 w-6" />
+          <Clock className="text-destructive h-6 w-6" />
         ) : (
-          <XCircle className="text-danger h-6 w-6" />
+          <XCircle className="text-destructive h-6 w-6" />
         )}
       </div>
       <div className="space-y-2 text-center">
-        <h3 className="text-text text-xl font-semibold">
+        <h3 className="text-foreground text-xl font-semibold">
           {emailResent
             ? 'Check Your Email'
             : isExpiredLink
               ? 'Verification Link Expired'
               : 'Verification Failed'}
         </h3>
-        <p className="text-font-100 text-base">
+        <p className="text-muted-foreground text-base">
           {errorMessage ||
             'This verification link has expired. Please request a new one to continue.'}
         </p>
@@ -221,7 +221,7 @@ export default function VerifyEmailHandler() {
         <div className="pt-4">
           <Link
             href={verificationLink}
-            className="text-blue-500 underline hover:text-blue-700"
+            className="text-info hover:text-info/80 underline"
             data-testid="verification-link"
           >
             Click here to verify your email

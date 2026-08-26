@@ -24,6 +24,8 @@ function validEnvironment(
     DISCORD_WEBHOOK_URL: "https://discord.example.com/webhook",
     GOOGLE_CLIENT_ID: "google-client-id",
     GOOGLE_CLIENT_SECRET: "google-client-secret",
+    REDIS_URL: "redis://localhost:6379",
+    RABBITMQ_URL: "amqp://localhost:5672",
     ...overrides,
   };
 }
@@ -68,11 +70,16 @@ test("validateEnvironment rejects shared JWT and CSRF secrets", () => {
   );
 });
 
-test("validateEnvironment requires HTTPS domain and Redis URL for staging", () => {
+test("validateEnvironment requires HTTPS domain for staging", () => {
+  // REDIS_URL/RABBITMQ_URL are required unconditionally at the base schema
+  // level (see redis-client.ts / rabbitmq-connection.ts, neither has a
+  // fallback), so leaving one unset fails base validation before Zod ever
+  // runs superRefine — there is no reachable state where both a base-level
+  // issue and a superRefine-level issue appear together. This test isolates
+  // the superRefine-only "DOMAIN must be HTTPS in staging/production" check.
   const env = validEnvironment({
     NODE_ENV: "staging",
     DOMAIN: "http://staging.example.com",
-    REDIS_URL: undefined,
   });
 
   assert.throws(
@@ -80,7 +87,6 @@ test("validateEnvironment requires HTTPS domain and Redis URL for staging", () =
     (error) => {
       assert.ok(error instanceof EnvironmentValidationError);
       assert.match(error.message, /DOMAIN must be HTTPS/);
-      assert.match(error.message, /REDIS_URL is required/);
       return true;
     },
   );

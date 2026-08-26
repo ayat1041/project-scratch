@@ -26,7 +26,7 @@ export default function ConfirmPasswordField({
     <div className="mb-2.5 space-y-2">
       <label
         htmlFor="confirmPassword"
-        className="block text-sm font-medium text-black"
+        className="text-foreground block text-sm font-medium"
       >
         Confirm Password
       </label>
@@ -36,7 +36,7 @@ export default function ConfirmPasswordField({
           id="confirmPassword"
           type={showPassword ? 'text' : 'password'}
           placeholder="Confirm new password"
-          className="border-gray placeholder:text-gray text-text bg-secondary/50 h-12 pr-10 pl-10 text-sm font-medium outline-none placeholder:text-sm md:w-[382px]"
+          className="bg-secondary/50 h-12 pr-10 pl-10 text-sm font-medium outline-none placeholder:text-sm md:w-[382px]"
           value={confirmPassword}
           onChange={e => onConfirmPasswordChange(e.target.value)}
           data-testid="reset-confirm-password-input"

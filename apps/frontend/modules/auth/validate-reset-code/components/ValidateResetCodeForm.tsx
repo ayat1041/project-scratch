@@ -45,7 +45,7 @@ export default function ValidateResetCodeForm({ email }: { email: string }) {
   return (
     <form onSubmit={handleSubmit}>
       {errorMessage && (
-        <div className="border-danger bg-danger/10 text-danger mb-4 rounded border p-3">
+        <div className="border-destructive bg-destructive/10 text-destructive mb-4 rounded border p-3">
           {errorMessage}
         </div>
       )}

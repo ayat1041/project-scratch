@@ -22,8 +22,10 @@ export const serverConfig: ServerConfig = {
   cors: {
     origin: [
       "http://localhost:3000", // frontend
-      "http://localhost:3003", // admin
+      "http://localhost:4000", // admin (`pnpm run dev`, see apps/admin/package.json)
+      "http://localhost:3003", // admin (`docker compose -f docker-compose.dev.yml up`)
       "http://127.0.0.1:3000",
+      "http://127.0.0.1:4000",
       "https://dev.example.com",
       "https://staging.example.com",
       "https://example.com",

@@ -25,7 +25,7 @@ export default function NewPasswordField({
     <div className="mb-2.5 space-y-2 md:mb-[15px]">
       <label
         htmlFor="password"
-        className="block text-sm font-medium text-black"
+        className="text-foreground block text-sm font-medium"
       >
         New Password
       </label>
@@ -37,7 +37,7 @@ export default function NewPasswordField({
         id="password"
         placeholder="Enter new password"
         autoComplete="new-password"
-        className="border-gray placeholder:text-gray text-text h-12 bg-white pr-10 pl-10 text-base font-medium outline-none md:w-[382px] md:text-base"
+        className="h-12 pr-10 pl-10 text-base font-medium outline-none md:w-[382px] md:text-base"
         dataTestId="reset-password-input"
       />
       <PasswordGeneratorPanel

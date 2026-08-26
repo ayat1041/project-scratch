@@ -14,13 +14,13 @@ export const metadata: Metadata = {
 
 export default function SignInPage() {
   return (
-    <SectionContainer className="bg-background-auth w-full md:bg-transparent">
+    <SectionContainer className="bg-background w-full md:bg-transparent">
       <div className="flex items-center justify-center px-2.5 xl:px-8">
         <div className="bg-card border-border rounded-lg border p-8 shadow-lg">
           <div className="flex flex-col items-center justify-center gap-1.25">
             {/* <AuthLogo /> */}
 
-            <h2 className="text-font-200 text-center text-lg font-semibold md:text-2xl">
+            <h2 className="text-foreground text-center text-lg font-semibold md:text-2xl">
               Sign In to Starter
             </h2>
           </div>

@@ -59,7 +59,7 @@ export default function TableHeaderRow<TSortField extends string = string>({
   onSort,
 }: TableHeaderRowProps<TSortField>) {
   return (
-    <TableHeader className="[&_tr]:border-b-gray-200">
+    <TableHeader className="[&_tr]:border-b-border">
       <TableRow className={className} data-testid={testId}>
         {items.map((item, index) => {
           const isSortable = Boolean(item.sortKey);
@@ -72,7 +72,7 @@ export default function TableHeaderRow<TSortField extends string = string>({
             <TableHead
               key={item.sortKey || item.label || `header-${index}`}
               scope="col"
-              className={cn("text-[#6b7280]", item.className)}
+              className={cn("text-muted-foreground", item.className)}
               data-testid={item.showCheckbox ? undefined : item.testId}
               aria-sort={isSortable ? getAriaSort(direction) : undefined}
             >

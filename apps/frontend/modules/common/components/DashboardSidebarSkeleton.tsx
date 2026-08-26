@@ -2,7 +2,7 @@ import { Skeleton } from '@repo/ui/components/ui/skeleton';
 
 export default function DashboardSidebarSkeleton() {
   return (
-    <aside className="relative z-501 hidden min-h-screen w-55 flex-col border-r border-gray-200 bg-[#ebecf0] transition-all duration-300 md:flex">
+    <aside className="border-sidebar-border bg-sidebar-background relative z-501 hidden min-h-screen w-55 flex-col border-r transition-all duration-300 md:flex">
       <div className="fixed w-55">
         {/* Logo Area Skeleton */}
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">

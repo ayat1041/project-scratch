@@ -102,7 +102,7 @@ const RichTextEditor = ({
             type="button"
             variant="ghost"
             size="sm"
-            className={`h-8 w-8 p-0 ${editor.isActive("bold") ? "bg-slate-900/10" : ""}`}
+            className={`h-8 w-8 p-0 ${editor.isActive("bold") ? "bg-accent" : ""}`}
             onClick={() => editor.chain().focus().toggleBold().run()}
             title="Bold (Ctrl+B)"
           >
@@ -112,7 +112,7 @@ const RichTextEditor = ({
             type="button"
             variant="ghost"
             size="sm"
-            className={`h-8 w-8 p-0 ${editor.isActive("italic") ? "bg-slate-900/10" : ""}`}
+            className={`h-8 w-8 p-0 ${editor.isActive("italic") ? "bg-accent" : ""}`}
             onClick={() => editor.chain().focus().toggleItalic().run()}
             title="Italic (Ctrl+I)"
           >
@@ -123,7 +123,7 @@ const RichTextEditor = ({
             type="button"
             variant="ghost"
             size="sm"
-            className={`h-8 w-8 p-0 ${editor.isActive("bulletList") ? "bg-slate-900/10" : ""}`}
+            className={`h-8 w-8 p-0 ${editor.isActive("bulletList") ? "bg-accent" : ""}`}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             title="Bullet List"
           >
@@ -133,7 +133,7 @@ const RichTextEditor = ({
             type="button"
             variant="ghost"
             size="sm"
-            className={`h-8 w-8 p-0 ${editor.isActive("orderedList") ? "bg-slate-900/10" : ""}`}
+            className={`h-8 w-8 p-0 ${editor.isActive("orderedList") ? "bg-accent" : ""}`}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             title="Numbered List"
           >
@@ -188,12 +188,12 @@ const RichTextEditor = ({
       {maxLength && (
         <div className="space-y-1">
           <p
-            className={`text-right text-xs ${isExceeded ? "text-amber-500" : "text-muted-foreground"}`}
+            className={`text-right text-xs ${isExceeded ? "text-destructive" : "text-muted-foreground"}`}
           >
             {charCount}/{maxLength}
           </p>
           {isExceeded && (
-            <p className="text-sm text-amber-500">
+            <p className="text-sm text-destructive">
               Body can not be longer than {maxLength} characters
             </p>
           )}

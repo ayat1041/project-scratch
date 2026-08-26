@@ -85,7 +85,7 @@ const PinInput: React.FC<PinInputProps> = ({
           onKeyDown={e => handleKeyDown(index, e)}
           onPaste={handlePaste}
           placeholder="0"
-          className="border-font-100 text-font-100 focus:border-font-100 h-[47px] w-[47px] rounded-full border-[.49px] text-center text-4xl font-medium transition-colors focus:outline-none md:h-16 md:w-16 md:border-[.67px]"
+          className="border-border text-foreground focus:border-primary h-[47px] w-[47px] rounded-full border-[.49px] text-center text-4xl font-medium transition-colors focus:outline-none md:h-16 md:w-16 md:border-[.67px]"
           aria-label={`Digit ${index + 1}`}
           disabled={disabled}
         />

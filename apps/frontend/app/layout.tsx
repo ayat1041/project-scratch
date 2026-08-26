@@ -10,6 +10,7 @@ import { VisitorViewProvider } from '@/context';
 import AuthCheck from '@modules/auth/components/shared/AuthCheck';
 import ObservabilityProvider from '@/components/ObservabilityProvider';
 import BackToTopButton from '@repo/ui/components/common/BackToTopButton';
+import { ThemeProvider } from '@repo/ui/components/common/ThemeProvider';
 
 const bricolage = Bricolage_Grotesque({
   variable: '--font-bricolage',
@@ -32,26 +33,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
         className={`${bricolage.variable} ${inter.variable} flex w-full flex-col items-center antialiased`}
         suppressHydrationWarning={true}
       >
-        <ObservabilityProvider />
-        <VisitorViewProvider>
-          <QueryProvider>
-            <ReduxProvider>
-              <AuthProvider>
-                <AuthCheck />
-                <main className="relative w-full max-w-[1920px]">
-                  {children}
-                  <BackToTopButton />
-                </main>
-              </AuthProvider>
-            </ReduxProvider>
-          </QueryProvider>
-        </VisitorViewProvider>
-        <Toaster position="bottom-left" duration={10000} />
+        <ThemeProvider>
+          <ObservabilityProvider />
+          <VisitorViewProvider>
+            <QueryProvider>
+              <ReduxProvider>
+                <AuthProvider>
+                  <AuthCheck />
+                  <main className="relative w-full max-w-[1920px]">
+                    {children}
+                    <BackToTopButton />
+                  </main>
+                </AuthProvider>
+              </ReduxProvider>
+            </QueryProvider>
+          </VisitorViewProvider>
+          <Toaster position="bottom-left" duration={10000} />
+        </ThemeProvider>
       </body>
     </html>
   );

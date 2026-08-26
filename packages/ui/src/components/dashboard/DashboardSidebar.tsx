@@ -212,7 +212,7 @@ export default function DashboardSidebar({
         key={item.title}
         to={item.url!}
         className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-        activeClassName="bg-primary text-white hover:bg-secondary-hover hover:text-white"
+        activeClassName="bg-primary text-primary-foreground hover:bg-secondary/80 hover:text-secondary-foreground"
         suppressHydrationWarning
       >
         <item.icon className="h-[18px] w-[18px]" />
@@ -259,7 +259,7 @@ export default function DashboardSidebar({
         <button
           title="menu"
           onClick={toggleMobileMenu}
-          className="fixed top-[12px] left-4 z-[999] block rounded-md bg-transparent p-2 text-gray-700 transition-all duration-200 hover:bg-gray-100 focus:outline-none md:hidden"
+          className="fixed top-[12px] left-4 z-[999] block rounded-md bg-transparent p-2 text-muted-foreground transition-all duration-200 hover:bg-muted focus:outline-none md:hidden"
         >
           <LayoutDashboard className="h-6 w-6" />
         </button>
@@ -270,7 +270,7 @@ export default function DashboardSidebar({
         <div
           ref={sidebarRef}
           className={cn(
-            "fixed top-0 left-0 z-[1000] h-screen w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out md:hidden",
+            "fixed top-0 left-0 z-[1000] h-screen w-64 transform bg-sidebar-background shadow-lg transition-transform duration-300 ease-in-out md:hidden",
             mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >
@@ -279,7 +279,7 @@ export default function DashboardSidebar({
             <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
               <Link
                 href={logoHref}
-                className="text-base font-semibold text-[#1e1e1e]"
+                className="text-base font-semibold text-foreground"
                 onClick={() => setMobileMenuOpen && setMobileMenuOpen(false)}
               >
                 {logoText}
@@ -287,7 +287,7 @@ export default function DashboardSidebar({
               <button
                 title="close-menu"
                 onClick={toggleMobileMenu}
-                className="rounded-md p-2 text-gray-500 hover:bg-gray-100 focus:outline-none"
+                className="rounded-md p-2 text-muted-foreground hover:bg-muted focus:outline-none"
                 aria-label="sidebar close menu"
               >
                 <X className="h-5 w-5" />
@@ -312,8 +312,8 @@ export default function DashboardSidebar({
                             <li key={sub.title}>
                               <NavLink
                                 to={sub.url}
-                                className="text-md hover:text-secondary flex items-center gap-3 rounded-lg pl-8 pr-3 py-2 font-medium text-[#6b7280] transition-all duration-200 hover:bg-gray-50 hover:font-semibold"
-                                activeClassName="bg-secondary text-white hover:bg-secondary-hover hover:text-white"
+                                className="text-md hover:text-secondary flex items-center gap-3 rounded-lg pl-8 pr-3 py-2 font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:font-semibold"
+                                activeClassName="bg-secondary text-secondary-foreground hover:bg-secondary/80"
                               >
                                 <sub.icon className="h-[18px] w-[18px]" />
                                 <span>{sub.title}</span>
@@ -329,8 +329,8 @@ export default function DashboardSidebar({
                     <li key={item.title}>
                       <NavLink
                         to={item.url!}
-                        className="text-md hover:text-secondary flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-[#6b7280] transition-all duration-200 hover:bg-gray-50 hover:font-semibold"
-                        activeClassName="bg-secondary text-white hover:bg-secondary-hover hover:text-white"
+                        className="text-md hover:text-secondary flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:font-semibold"
+                        activeClassName="bg-secondary text-secondary-foreground hover:bg-secondary/80"
                       >
                         <item.icon className="h-[18px] w-[18px]" />
                         <span>{item.title}</span>
@@ -348,7 +348,7 @@ export default function DashboardSidebar({
       {/* Desktop/Tablet Sidebar */}
       <aside
         className={cn(
-          "relative z-[501] hidden min-h-screen flex-col border-r border-gray-200 bg-[#ebecf0] transition-all duration-300 md:flex",
+          "relative z-[501] hidden min-h-screen flex-col border-r border-sidebar-border bg-sidebar-background transition-all duration-300 md:flex",
           collapsed ? "w-[68px]" : "w-[220px]",
           className,
         )}

@@ -25,7 +25,7 @@ export default function PublicNavbar() {
         <>
           <Link
             href="/auth/signup"
-            className="text-blue-link hidden justify-start text-center text-base font-medium hover:underline lg:flex"
+            className="text-primary hidden justify-start text-center text-base font-medium hover:underline lg:flex"
             data-testid="signup-link"
           >
             Sign Up

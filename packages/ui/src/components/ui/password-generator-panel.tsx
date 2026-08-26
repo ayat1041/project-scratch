@@ -196,7 +196,7 @@ export default function PasswordGeneratorPanel({
                   Length
                 </Label>
                 <span
-                  className="rounded bg-[#f3f4f6] px-2 py-0.5 font-mono text-sm"
+                  className="rounded bg-muted px-2 py-0.5 font-mono text-sm"
                   {...testId("length-value")}
                 >
                   {generatorLength}

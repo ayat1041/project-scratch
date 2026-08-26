@@ -11,11 +11,11 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <SectionContainer className="bg-background-auth w-full md:bg-transparent md:py-10">
+    <SectionContainer className="bg-background w-full md:bg-transparent md:py-10">
       <div className="flex items-center justify-center px-2.5 xl:px-8">
         <div className="bg-card/80 border-border glow-card w-[448px] rounded-2xl border p-8 backdrop-blur-xl">
           <div className="flex flex-col items-center justify-center gap-[5px]">
-            <h2 className="text-font-200 text-center text-lg font-semibold md:text-2xl">
+            <h2 className="text-foreground text-center text-lg font-semibold md:text-2xl">
               Create Your Account
             </h2>
           </div>

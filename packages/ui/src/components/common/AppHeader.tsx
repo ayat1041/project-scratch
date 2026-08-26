@@ -3,6 +3,7 @@
 import { cn } from "../../lib/utils";
 import SectionContainer from "../containers/SectionContainer";
 import AuthLogo from "./AuthLogo";
+import { ThemeToggle } from "./ThemeToggle";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { type ReactNode } from "react";
@@ -38,11 +39,14 @@ export default function AppHeader({
       <div className="relative w-full">
         <nav
           className={cn(
-            "border-border fixed top-0 right-0 left-0 z-50 flex h-16 w-full items-center justify-end border-b bg-white px-6",
+            "border-border bg-background fixed top-0 right-0 left-0 z-50 flex h-16 w-full items-center justify-end border-b px-6",
             className,
           )}
         >
-          <div className="flex items-center gap-2">{children}</div>
+          <div className="flex items-center gap-2">
+            {children}
+            <ThemeToggle />
+          </div>
         </nav>
         <div className="mt-14 inline-block"></div>
       </div>
@@ -54,7 +58,7 @@ export default function AppHeader({
       <div className="relative z-[500] w-full">
         <nav
           className={cn(
-            "fixed top-0 right-0 left-0 z-50 w-full bg-white shadow-md",
+            "bg-background fixed top-0 right-0 left-0 z-50 w-full shadow-md",
             className,
           )}
         >
@@ -65,7 +69,10 @@ export default function AppHeader({
                   <AuthLogo className="h-[32px] w-[140px]" />
                 </Link>
               </div>
-              <div className="flex items-center gap-2.5">{children}</div>
+              <div className="flex items-center gap-2.5">
+                {children}
+                <ThemeToggle />
+              </div>
             </div>
           </SectionContainer>
         </nav>

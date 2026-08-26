@@ -99,8 +99,8 @@ export default function ForgotPasswordForm() {
   if (isSubmitted) {
     return (
       <div className="space-y-6 text-center">
-        <div className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
-          <Mail className="h-8 w-8 text-green-500" />
+        <div className="bg-success/10 mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full">
+          <Mail className="text-success h-8 w-8" />
         </div>
         <div className="space-y-2">
           <h2 className="text-foreground text-lg font-semibold">
@@ -120,7 +120,7 @@ export default function ForgotPasswordForm() {
               href={verificationLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block max-w-[382px] text-sm break-all text-blue-600 underline"
+              className="text-info inline-block max-w-[382px] text-sm break-all underline"
               data-testid="verification-link"
             >
               {verificationLink}
@@ -155,12 +155,12 @@ export default function ForgotPasswordForm() {
   return (
     <form onSubmit={handleSubmit}>
       {errorMessage && (
-        <div className="border-warning bg-danger/10 text-warning mb-4 rounded border p-3">
+        <div className="border-warning bg-warning/10 text-warning mb-4 rounded border p-3">
           {errorMessage}
         </div>
       )}
       <div className="mb-[25px] space-y-2">
-        <label htmlFor="email" className="text-md block font-medium text-black">
+        <label htmlFor="email" className="text-md text-foreground block font-medium">
           Email address
         </label>
         <div className="relative">
@@ -169,7 +169,7 @@ export default function ForgotPasswordForm() {
             id="email"
             type="email"
             placeholder="Enter your email address"
-            className={`border-gray placeholder:text-gray text-text h-12 pr-10 pl-10 text-base font-medium outline-none md:w-[382px] md:text-base ${
+            className={`h-12 pr-10 pl-10 text-base font-medium outline-none md:w-[382px] md:text-base ${
               fieldError ? 'border-warning focus-visible:ring-warning' : ''
             }`}
             value={email}

@@ -157,7 +157,7 @@ export default function LabelInputCell<TItem>({
                     "rounded-full border border-transparent p-1 transition-colors",
                     isDisabled || isSaving
                       ? "cursor-not-allowed opacity-50"
-                      : "hover:border-blue-300",
+                      : "hover:border-info",
                   )}
                   onClick={handleStartEditing}
                   disabled={isDisabled || isSaving}
@@ -216,7 +216,7 @@ export default function LabelInputCell<TItem>({
                 {tempLabelValue.trim().length > 0 && (
                   <button
                     type="button"
-                    className="rounded-full border border-transparent p-1 transition-colors hover:border-green-300 disabled:opacity-50"
+                    className="rounded-full border border-transparent p-1 transition-colors hover:border-success disabled:opacity-50"
                     onClick={handleSaveLabel}
                     disabled={isSaving}
                     data-testid={`save-button-${itemId}`}

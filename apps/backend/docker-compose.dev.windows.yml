@@ -30,7 +30,7 @@ services:
     networks:
       - starter-app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8025"]
+      test: ["CMD", "nc", "-z", "localhost", "8025"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -71,8 +71,8 @@ services:
     environment:
       - NODE_OPTIONS=--max-old-space-size=4096
     volumes:
-      - ../../apps/backend/src:/app/apps/backend/src
-      - ../../packages:/app/packages
+      - ../../apps/backend/src:/usr/src/app/apps/backend/src
+      - ../../packages:/usr/src/app/packages
     depends_on:
       postgres:
         condition: service_healthy
@@ -81,11 +81,57 @@ services:
     networks:
       - starter-app-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8000/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8000/health"]
       interval: 15s
       timeout: 5s
       retries: 3
       start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: starter-rabbitmq-dev
+    ports:
+      - "5672:5672" # AMQP
+      - "15672:15672" # management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=starter
+      - RABBITMQ_DEFAULT_PASS=starterRabbit123
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - starter-app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  email-send-consumer:
+    build:
+      context: ../../
+      dockerfile: apps/backend/Dockerfile
+      target: dev
+    container_name: starter-email-send-consumer-dev
+    user: root
+    restart: on-failure:3
+    env_file:
+      - .env
+    volumes:
+      - ../../apps/backend/src:/usr/src/app/apps/backend/src
+      - ../../packages:/usr/src/app/packages
+    # Unlike docker-compose.dev.yml, this mounts the whole packages/ tree
+    # (including dist/) rather than just constants/src, so the host's
+    # `pnpm run build:packages` output is already present — no in-container
+    # rebuild needed (and re-running tsc here fails: the bind mount shadows
+    # the image's own node_modules symlinks with the host's, which don't
+    # resolve inside the Linux container).
+    command: sh -c "cd /usr/src/app/apps/backend && pnpm run email-send-consumer:dev"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - starter-app-network
 
   # prometheus:
   #   image: prom/prometheus
@@ -181,6 +227,8 @@ volumes:
   redis-data:
     driver: local
   starter-pg-data:
+    driver: local
+  rabbitmq-data:
     driver: local
   # grafana-storage:
   # prometheus-storage:

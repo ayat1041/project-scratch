@@ -20,13 +20,13 @@ export default async function OTPPage({
   const email = params.email as string;
 
   return (
-    <SectionContainer className="bg-background-auth w-full md:bg-transparent">
+    <SectionContainer className="bg-background w-full md:bg-transparent">
       <div className="flex items-center justify-center px-2.5 xl:px-8">
-        <div className="bg-background-card w-[355px] rounded-[10px] border-0 px-[27px] py-[20px] md:w-[600px] md:px-[50px] md:py-[40px]">
+        <div className="bg-card w-[355px] rounded-[10px] border-0 px-[27px] py-[20px] md:w-[600px] md:px-[50px] md:py-[40px]">
           <div className="flex flex-col items-center justify-center gap-[5px]">
             <AuthLogo />
 
-            <h2 className="text-font-200 mt-[15px] text-center text-lg font-semibold md:mt-10 md:text-3xl">
+            <h2 className="text-foreground mt-[15px] text-center text-lg font-semibold md:mt-10 md:text-3xl">
               Email Verification
             </h2>
           </div>

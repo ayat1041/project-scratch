@@ -9,8 +9,12 @@ import {
 import { createLogger, transports, format, Logger } from "winston";
 import LokiTransport from "winston-loki";
 
-const privateIP = process.env.PRIVATE_IP;
-const monitoringHostIP = process.env.MONITORING_HOST_IP;
+// Falls back to localhost so a blank IP (expected when the Loki/monitoring
+// stack isn't running locally) still produces a syntactically valid
+// LokiTransport host — it already degrades gracefully (connection warnings,
+// not a crash) when nothing is listening there.
+const privateIP = process.env.PRIVATE_IP || "localhost";
+const monitoringHostIP = process.env.MONITORING_HOST_IP || "localhost";
 
 const activeTransports: (
   | InstanceType<typeof transports.Console>

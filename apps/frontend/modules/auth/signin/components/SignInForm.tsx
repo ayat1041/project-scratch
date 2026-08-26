@@ -100,7 +100,7 @@ export default function SignInForm() {
                     type="email"
                     placeholder="Enter your email"
                     className={cn(
-                      'border-gray placeholder:text-gray h-12 rounded pr-10 text-sm outline-none placeholder:text-sm md:w-[382px]',
+                      'h-12 rounded pr-10 text-sm outline-none placeholder:text-sm md:w-[382px]',
                       fieldState.error && 'border-warning'
                     )}
                     autoComplete="email"
@@ -126,7 +126,7 @@ export default function SignInForm() {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     className={cn(
-                      'placeholder:text-gray border-gray h-12 rounded pr-10 text-sm outline-none',
+                      'h-12 rounded pr-10 text-sm outline-none',
                       fieldState.error && 'border-warning'
                     )}
                     autoComplete="current-password"

@@ -69,7 +69,7 @@ export const MediaUploadSection = ({
           }}
           data-testid={testIds.uploadArea}
           className={`cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-            fileUploadError ? "border-amber-500" : "border-border"
+            fileUploadError ? "border-destructive" : "border-border"
           } ${isUploading ? "cursor-not-allowed opacity-50" : "hover:bg-muted/50"}`}
         >
           {isUploading ? (
@@ -80,10 +80,10 @@ export const MediaUploadSection = ({
           ) : (
             <>
               <Upload
-                className={`mx-auto mb-2 h-8 w-8 ${fileUploadError ? "text-amber-500" : "text-muted-foreground"}`}
+                className={`mx-auto mb-2 h-8 w-8 ${fileUploadError ? "text-destructive" : "text-muted-foreground"}`}
               />
               <p
-                className={`text-sm ${fileUploadError ? "text-amber-500" : "text-muted-foreground"}`}
+                className={`text-sm ${fileUploadError ? "text-destructive" : "text-muted-foreground"}`}
               >
                 Upload JPG, JPEG, PNG, PDF, PPT, PPTX, DOC, or DOCX (max. 5 MB)
               </p>
@@ -92,7 +92,7 @@ export const MediaUploadSection = ({
         </div>
       )}
       {fileUploadError && (
-        <p className="text-sm text-amber-500">
+        <p className="text-sm text-destructive">
           {fileUploadError.replace(/^\*/, "")}
         </p>
       )}
@@ -125,9 +125,9 @@ export const MediaUploadSection = ({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full flex-col items-center justify-center bg-slate-100">
-                    <FileText className="h-12 w-12 text-slate-400" />
-                    <span className="mt-2 text-xs font-medium text-slate-600">
+                  <div className="flex h-full w-full flex-col items-center justify-center bg-muted">
+                    <FileText className="h-12 w-12 text-muted-foreground" />
+                    <span className="mt-2 text-xs font-medium text-muted-foreground">
                       {fileExt}
                     </span>
                   </div>

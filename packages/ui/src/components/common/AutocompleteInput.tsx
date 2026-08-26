@@ -183,7 +183,7 @@ export default function AutocompleteInput({
           ? `${maxLength - value.length} characters left`
           : `${value.length}/${maxLength}`}
       </p>
-      {error && <p className="text-sm text-amber-500">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }

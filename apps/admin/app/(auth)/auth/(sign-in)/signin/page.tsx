@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function SignInPage() {
   return (
-    <SectionContainer className="bg-background-auth w-full md:bg-transparent">
+    <SectionContainer className="bg-background w-full md:bg-transparent">
       <div className="flex flex-col items-center justify-center px-2.5 xl:px-8">
         <div className="mb-8 text-center">
           <div className="bg-primary/10 mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl">

@@ -33,7 +33,7 @@ const PasswordInput = ({
   return (
     <div className="relative md:w-[382px]">
       <div className="relative">
-        <span className="text-gray absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform">
+        <span className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform">
           <Lock className="h-5 w-5" />
         </span>
         <Input
@@ -45,9 +45,9 @@ const PasswordInput = ({
           autoComplete={autoComplete}
           data-testid={dataTestId}
           className={cn(
-            'border-gray placeholder:text-gray text-text h-12 w-full rounded border pr-10 pl-10 text-base font-medium outline-none md:w-[382px] md:text-base',
+            'h-12 w-full rounded pr-10 pl-10 text-base font-medium outline-none md:w-[382px] md:text-base',
             className,
-            error && 'border-danger'
+            error && 'border-destructive'
           )}
         />
         <PasswordVisibilityToggle isVisible={isVisible} onClick={onToggle} />

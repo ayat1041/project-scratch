@@ -53,10 +53,10 @@ const getFileTypeIcon = (kind: MediaKind) => {
     return <FileText className="h-6 w-6 text-destructive" />;
   }
   if (kind === "doc") {
-    return <FileText className="h-6 w-6 text-blue-600" />;
+    return <FileText className="h-6 w-6 text-info" />;
   }
   if (kind === "ppt") {
-    return <FileText className="h-6 w-6 text-orange-600" />;
+    return <FileText className="h-6 w-6 text-warning" />;
   }
   return <File className="h-6 w-6 text-muted-foreground" />;
 };

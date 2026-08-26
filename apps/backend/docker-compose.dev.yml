@@ -84,10 +84,10 @@ services:
     environment:
       - NODE_OPTIONS=--max-old-space-size=4096
     volumes:
-      - ../../apps/backend/src:/app/apps/backend/src
-      - ../../apps/backend/drizzle:/app/apps/backend/drizzle
-      - ../../packages/constants/src:/app/packages/constants/src
-    command: sh -c "pnpm --filter @repo/constants build && cd /app/apps/backend && pnpm run dev"
+      - ../../apps/backend/src:/usr/src/app/apps/backend/src
+      - ../../apps/backend/drizzle:/usr/src/app/apps/backend/drizzle
+      - ../../packages/constants/src:/usr/src/app/packages/constants/src
+    command: sh -c "pnpm --filter @repo/constants build && cd /usr/src/app/apps/backend && pnpm run dev"
     depends_on:
       postgres:
         condition: service_healthy
@@ -133,9 +133,9 @@ services:
     env_file:
       - .env
     volumes:
-      - ../../apps/backend/src:/app/apps/backend/src
-      - ../../packages/constants/src:/app/packages/constants/src
-    command: sh -c "pnpm --filter @repo/constants build && cd /app/apps/backend && pnpm run email-send-consumer:dev"
+      - ../../apps/backend/src:/usr/src/app/apps/backend/src
+      - ../../packages/constants/src:/usr/src/app/packages/constants/src
+    command: sh -c "pnpm --filter @repo/constants build && cd /usr/src/app/apps/backend && pnpm run email-send-consumer:dev"
     depends_on:
       rabbitmq:
         condition: service_healthy

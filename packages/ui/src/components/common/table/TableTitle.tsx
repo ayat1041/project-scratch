@@ -17,12 +17,12 @@ export default function TableTitle({
     <div className="flex items-center justify-between">
       <div>
         <h1
-          className="text-2xl font-bold text-[#1e1e1e]"
+          className="text-2xl font-bold text-foreground"
           data-testid={titleTestId}
         >
           {title}
         </h1>
-        <p className="mt-1 text-[#6b7280]" data-testid={descriptionTestId}>
+        <p className="mt-1 text-muted-foreground" data-testid={descriptionTestId}>
           {description}
         </p>
       </div>

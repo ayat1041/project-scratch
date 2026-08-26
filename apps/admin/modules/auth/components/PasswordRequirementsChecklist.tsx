@@ -37,7 +37,7 @@ export default function PasswordRequirementsChecklist({
   ];
 
   return (
-    <div className="border-border mt-2 space-y-3 rounded-lg bg-[#f3f4f64c] p-4">
+    <div className="border-border bg-muted/30 mt-2 space-y-3 rounded-lg p-4">
       <p className="text-foreground mb-2 text-sm font-medium">
         Password requirements:
       </p>

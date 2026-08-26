@@ -111,7 +111,7 @@ function NameInput({
       <div className="relative">
         <User
           className={`absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 ${
-            nameError ? 'text-amber-500' : 'text-muted-foreground'
+            nameError ? 'text-warning' : 'text-muted-foreground'
           }`}
         />
         <Input
@@ -121,12 +121,12 @@ function NameInput({
           value={name}
           onChange={onNameChange}
           onBlur={onNameBlur}
-          className={cn('pl-12', nameError && 'border-amber-500 focus-visible:ring-amber-500')}
+          className={cn('pl-12', nameError && 'border-warning focus-visible:ring-warning')}
           maxLength={140}
           required
         />
       </div>
-      {nameError && <p className="text-xs text-amber-500">{nameError}</p>}
+      {nameError && <p className="text-warning text-xs">{nameError}</p>}
     </div>
   );
 }
@@ -156,7 +156,7 @@ function EmailInputSection({
       <div className="relative">
         <Mail
           className={`absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 ${
-            emailError || isPersonalEmail ? 'text-amber-500' : 'text-muted-foreground'
+            emailError || isPersonalEmail ? 'text-warning' : 'text-muted-foreground'
           }`}
         />
         <Input
@@ -168,14 +168,14 @@ function EmailInputSection({
           onBlur={onEmailBlur}
           className={cn(
             'pl-12',
-            (emailError || isPersonalEmail) && 'border-amber-500 focus-visible:ring-amber-500'
+            (emailError || isPersonalEmail) && 'border-warning focus-visible:ring-warning'
           )}
           required
         />
       </div>
-      {emailError && <p className="text-xs text-amber-500">{emailError}</p>}
+      {emailError && <p className="text-warning text-xs">{emailError}</p>}
       {!emailError && isPersonalEmail && (
-        <p className="text-xs text-amber-500">
+        <p className="text-warning text-xs">
           You&apos;re using {emailDomain} email address. Would you like to use your work email
           instead?
         </p>
@@ -190,7 +190,7 @@ function EmailInputSection({
         <p
           className={cn(
             'flex items-center gap-1 text-xs',
-            emailUniqueness.isUnique ? 'text-green-600' : 'text-amber-500'
+            emailUniqueness.isUnique ? 'text-success' : 'text-warning'
           )}
         >
           {emailUniqueness.isUnique ? (
@@ -330,7 +330,7 @@ function PasswordInputSection({
               !allPasswordRequirementsMet
                 ? 'text-muted-foreground/50'
                 : confirmPassword && password !== confirmPassword
-                  ? 'text-amber-500'
+                  ? 'text-warning'
                   : 'text-muted-foreground'
             }`}
           />
@@ -345,7 +345,7 @@ function PasswordInputSection({
             className={cn(
               'pr-12 pl-12',
               confirmPassword && password !== confirmPassword
-                ? 'border-amber-500 focus-visible:ring-amber-500'
+                ? 'border-warning focus-visible:ring-warning'
                 : ''
             )}
             required
@@ -378,7 +378,7 @@ function PasswordInputSection({
           </TooltipProvider>
         </div>
         {confirmPassword && password !== confirmPassword && (
-          <p className="text-xs text-amber-500">*Passwords do not match</p>
+          <p className="text-warning text-xs">*Passwords do not match</p>
         )}
       </div>
     </>
@@ -624,8 +624,8 @@ export default function SignUpForm() {
         />
 
         {errors.submit && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-            <p className="text-sm text-amber-800">{errors.submit}</p>
+          <div className="border-warning bg-warning/10 rounded-lg border p-3">
+            <p className="text-warning text-sm">{errors.submit}</p>
           </div>
         )}
 

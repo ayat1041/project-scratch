@@ -151,10 +151,10 @@ export const DateInput: FC<DateInputProps> = ({
           }
         }}
         className={cn(
-          'border-gray h-[50px] pr-10',
+          'border-input h-[50px] pr-10',
           '[&::-webkit-calendar-picker-indicator]:!pointer-events-none [&::-webkit-calendar-picker-indicator]:!opacity-0',
           '[&::-webkit-dropdown-arrow]:!hidden [&::-webkit-inner-spin-button]:!hidden [&::-webkit-outer-spin-button]:!hidden',
-          error && 'border-danger',
+          error && 'border-destructive',
           disabled && 'cursor-not-allowed opacity-50',
           className
         )}
@@ -162,7 +162,7 @@ export const DateInput: FC<DateInputProps> = ({
       <Calendar
         size={24}
         className={cn(
-          'text-gray absolute top-1/2 right-3 -translate-y-1/2',
+          'text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2',
           disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
         )}
         onClick={() => {

@@ -8,6 +8,7 @@ import ReduxProvider from '@/providers/redux';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/context/auth-context';
 import ObservabilityProvider from '@/components/ObservabilityProvider';
+import { ThemeProvider } from '@repo/ui/components/common/ThemeProvider';
 
 const bricolage = Bricolage_Grotesque({
   variable: '--font-bricolage',
@@ -30,20 +31,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
         className={`${bricolage.variable} ${inter.variable} flex w-full flex-col items-center antialiased`}
         suppressHydrationWarning={true}
       >
-        <ObservabilityProvider />
-        <ReduxProvider>
-          <AuthProvider>
-            <PublicNavbar />
-            <AuthCheck />
-            <main className="w-full max-w-[1920px]">{children}</main>
-          </AuthProvider>
-        </ReduxProvider>
-        <Toaster position="bottom-left" duration={10000} />
+        <ThemeProvider>
+          <ObservabilityProvider />
+          <ReduxProvider>
+            <AuthProvider>
+              <PublicNavbar />
+              <AuthCheck />
+              <main className="w-full max-w-[1920px]">{children}</main>
+            </AuthProvider>
+          </ReduxProvider>
+          <Toaster position="bottom-left" duration={10000} />
+        </ThemeProvider>
       </body>
     </html>
   );

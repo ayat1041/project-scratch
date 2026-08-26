@@ -27,19 +27,19 @@ export default function ConfirmPasswordField({
     <div className="mb-2.5 space-y-2">
       <label
         htmlFor="confirmPassword"
-        className="block text-sm font-medium text-black"
+        className="text-foreground block text-sm font-medium"
       >
         Confirm Password
       </label>
       <div className="relative flex items-center md:w-[382px]">
-        <span className="text-gray absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 transform">
+        <span className="text-muted-foreground absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 transform">
           <Lock className="text-muted-foreground h-5 w-5" />
         </span>
         <Input
           id="confirmPassword"
           type={showPassword ? 'text' : 'password'}
           placeholder="Confirm new password"
-          className="border-gray placeholder:text-gray text-text h-12 bg-white pr-10 pl-10 text-base font-medium outline-none md:w-[382px] md:text-base"
+          className="h-12 pr-10 pl-10 text-base font-medium outline-none md:w-[382px] md:text-base"
           value={confirmPassword}
           onChange={e => onConfirmPasswordChange(e.target.value)}
           data-testid="reset-confirm-password-input"
@@ -58,7 +58,7 @@ export default function ConfirmPasswordField({
           <CheckCircle2 className="h-4 w-4" /> Passwords match
         </p>
       )}
-      {error && <p className="text-danger mt-1 text-sm">{error}</p>}
+      {error && <p className="text-destructive mt-1 text-sm">{error}</p>}
     </div>
   );
 }

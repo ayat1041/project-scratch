@@ -28,10 +28,10 @@ const getFileTypeIcon = (mediaType: string | null, title: string) => {
     return <FileText className="h-6 w-6 text-destructive" />;
   }
   if (["doc", "docx"].includes(ext)) {
-    return <FileText className="h-6 w-6 text-blue-600" />;
+    return <FileText className="h-6 w-6 text-info" />;
   }
   if (["ppt", "pptx"].includes(ext)) {
-    return <FileText className="h-6 w-6 text-orange-600" />;
+    return <FileText className="h-6 w-6 text-warning" />;
   }
   return <File className="h-6 w-6 text-muted-foreground" />;
 };

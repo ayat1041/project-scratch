@@ -4,21 +4,71 @@ A production-grade starter template: pnpm/Turborepo monorepo with an Express + D
 
 It ships with exactly the scaffolding every project needs — users, roles, permissions, auth (signup/signin/password-reset/email-verification), an audit log, and generic geo/lookup tables (countries/states/cities/languages/timezones) — and nothing else. No business domain is baked in.
 
-## 🚀 Quick Start
+## 🚀 Running the project locally
+
+Working `.env` files (dev-only dummy credentials, matching the compose files below) are already committed at `apps/backend/.env`, `apps/frontend/.env`, and `apps/admin/.env` — nothing to fill in to get a first run working. Follow these steps in order from a fresh clone:
+
+### 1. Install dependencies and build the shared packages
 
 ```bash
-# Install
 pnpm install
-
-# Backend dev (Docker — Postgres, Redis, RabbitMQ, the API)
-cd apps/backend && docker compose -f docker-compose.dev.yml -p starter-api-dev up
-
-# Frontend dev
-cd apps/frontend && pnpm run dev
-
-# Admin dev
-cd apps/admin && pnpm run dev
+pnpm run build:packages   # builds @repo/constants, @repo/utilities, @repo/schemas-types
 ```
+
+`build:packages` has to run before the backend or either Next.js app can resolve those packages' compiled output — do this once up front (and again any time you change one of those three packages).
+
+### 2. Start the backend's Docker services
+
+```bash
+cd apps/backend
+docker compose -f docker-compose.dev.yml up --build      # Linux/macOS
+# or, on Windows:
+docker compose -f docker-compose.dev.windows.yml up --build
+```
+
+This brings up Postgres, Redis, RabbitMQ, Mailhog, and the API itself (`app-dev`, running `pnpm run dev` with hot reload via a bind mount). The Windows variant is a leaner subset (skips nginx and the Prometheus/Grafana/Loki/Tempo monitoring stack, which are awkward under Docker Desktop on Windows) — use the plain `docker-compose.dev.yml` on Linux/macOS if you want the full stack including monitoring. Wait for `app-dev` to report healthy (`docker compose ps`) before continuing.
+
+### 3. Generate and run the database migration, then seed
+
+In a second terminal, exec into the running API container:
+
+```bash
+cd apps/backend
+docker compose -f docker-compose.dev.yml exec app-dev sh
+```
+
+Then, inside the container:
+
+```bash
+npx drizzle-kit generate   # only needed after a schema change — the repo already ships an initial migration
+npx drizzle-kit migrate
+pnpm run seed               # optional: seeds roles/permissions/countries/states/cities/languages/timezones
+exit
+```
+
+(`docker compose exec <service>` works the same way regardless of which compose file you used in step 2 — no need to look up a container name.)
+
+### 4. Start the frontend and admin dev servers
+
+```bash
+cd apps/frontend && pnpm run dev   # http://localhost:3000
+cd apps/admin && pnpm run dev      # http://localhost:4000
+```
+
+### Where everything ends up
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Admin | http://localhost:4000 |
+| Backend API | http://localhost:8000 |
+| Postgres | localhost:5432 |
+| Redis | localhost:6379 |
+| RabbitMQ management UI | http://localhost:15672 (`starter` / `starterRabbit123`) |
+| Mailhog (catches dev emails) | http://localhost:8025 |
+| Grafana / Prometheus / Loki / Tempo (non-Windows only) | http://localhost:3001, :9090, :3100, :3200 |
+
+If everything above is reachable, the project is fully operable end to end — signup/signin, email verification (via Mailhog), and the admin panel's user/role/permission management all work against the same local stack.
 
 ## 📁 Structure
 
@@ -85,7 +135,7 @@ See `AGENTS.md` / `CLAUDE.md` for the full command list and how the architecture
 
 1. Rename the root package (`package.json` `name`), and replace the `starter` prefix used for Docker container/network names (`docker-compose*.yml`, `infra/ansible/inventory/host_vars/app.yml.example`) with your project's name.
 2. Optionally rename the `app_` table prefix (`apps/backend/src/db/schema`, `packages/schemas-types/src/tables`) if you want a project-specific one — it's a pure find/replace, not required.
-3. Copy `.env.example` → `.env` in each app and `infra/monitoring/.env.example` → `.env`, and fill in real values. Never commit `.env` or unencrypted `*_vault.yml` files.
+3. `apps/{backend,frontend,admin}/.env` already exist with working local-dev values (see "Running the project locally" above) — for a real deployment, replace them with real values (and copy `infra/monitoring/.env.example` → `.env` too). Never commit `.env` or unencrypted `*_vault.yml` files.
 4. Set up `infra/ansible/inventory/hosts.yml` and `host_vars/app.yml` for your real server(s), and configure the GitHub Actions secrets/variables listed above.
 5. Run `pnpm --filter backend run db:generate` after your first schema change to produce the initial migration, then `db:migrate` and `seed`.
 6. Start building your domain modules following the patterns in `.claude/skills` — `backend-architecture`, `frontend-architecture`, and `admin-architecture` are the entry points.

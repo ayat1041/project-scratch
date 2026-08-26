@@ -57,7 +57,7 @@ export default async function ResetPasswordPage({
   }
 
   return (
-    <SectionContainer className="bg-background-auth flex min-h-screen w-full items-center justify-center p-0 md:bg-transparent md:p-0">
+    <SectionContainer className="bg-background flex min-h-screen w-full items-center justify-center p-0 md:bg-transparent md:p-0">
       <div className="flex items-center justify-center p-4">
         {/* <div className="w-full rounded-[10px] border-0 md:w-fit p-4"> */}
         <ResetPasswordForm email={email} token={token} />

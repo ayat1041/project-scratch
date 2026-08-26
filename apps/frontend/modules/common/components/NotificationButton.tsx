@@ -53,10 +53,10 @@ export default function NotificationButton() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="z-50 w-80 border border-gray-200 bg-white p-0"
+        className="border-border bg-popover z-50 w-80 border p-0"
       >
-        <div className="flex items-center justify-between border-b border-gray-200 p-4">
-          <h4 className="font-semibold text-[#1e1e1e]">Notifications</h4>
+        <div className="border-border flex items-center justify-between border-b p-4">
+          <h4 className="text-foreground font-semibold">Notifications</h4>
           {unreadCount > 0 && (
             <button
               type="button"
@@ -71,7 +71,7 @@ export default function NotificationButton() {
           notifications={notifications}
           onNotificationClick={markNotificationAsRead}
         />
-        <div className="border-t border-gray-200 p-3">
+        <div className="border-border border-t p-3">
           <Button
             variant="ghost"
             className="text-secondary hover:text-secondary w-full text-sm"

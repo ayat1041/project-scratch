@@ -15,7 +15,7 @@ export default function ForgotPasswordSubtitle() {
   );
 
   return (
-    <p className="text-text-muted text-md mt-[0px] text-center font-normal tracking-[0%] md:text-base">
+    <p className="text-muted-foreground text-md mt-[0px] text-center font-normal tracking-[0%] md:text-base">
       {isSubmitted
         ? 'Check your email for instructions'
         : 'Enter your email to receive a reset link'}

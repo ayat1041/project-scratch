@@ -78,13 +78,13 @@ export const emailIcon = (
   >
     <path
       d="M2.13281 5.33325L7.31758 8.27098C9.22901 9.354 10.0366 9.354 11.9481 8.27098L17.1328 5.33325"
-      stroke="var(--gray)"
+      stroke="hsl(var(--muted-foreground))"
       strokeWidth="1.125"
       strokeLinejoin="round"
     />
     <path
       d="M2.14464 10.94C2.19367 13.2392 2.21819 14.3887 3.06653 15.2403C3.91487 16.0919 5.09556 16.1215 7.45694 16.1808C8.91229 16.2174 10.3533 16.2174 11.8087 16.1808C14.1701 16.1215 15.3507 16.0919 16.1991 15.2403C17.0475 14.3887 17.072 13.2392 17.121 10.94C17.1368 10.2007 17.1368 9.46583 17.121 8.72655C17.072 6.4274 17.0475 5.27782 16.1991 4.42625C15.3507 3.57468 14.1701 3.54501 11.8087 3.48568C10.3533 3.44911 8.91229 3.44911 7.45693 3.48567C5.09556 3.545 3.91487 3.57466 3.06653 4.42624C2.21818 5.27781 2.19367 6.42739 2.14463 8.72655C2.12887 9.46583 2.12888 10.2007 2.14464 10.94Z"
-      stroke="var(--gray)"
+      stroke="hsl(var(--muted-foreground))"
       strokeWidth="1.125"
       strokeLinejoin="round"
     />
@@ -101,19 +101,19 @@ export const passwordIcon = (
   >
     <path
       d="M11.5011 12.4583H11.5078M7.75781 12.4583H7.76454"
-      stroke="var(--gray)"
+      stroke="hsl(var(--muted-foreground))"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M3.83367 14.9668C4.00233 16.2195 5.03991 17.2009 6.30256 17.2589C7.36501 17.3078 8.44429 17.3333 9.63281 17.3333C10.8213 17.3333 11.9006 17.3078 12.963 17.2589C14.2257 17.2009 15.2633 16.2195 15.432 14.9668C15.5421 14.1493 15.6328 13.3115 15.6328 12.4583C15.6328 11.6051 15.5421 10.7672 15.432 9.94973C15.2633 8.697 14.2257 7.71562 12.963 7.65757C11.9006 7.60873 10.8213 7.58325 9.63281 7.58325C8.44429 7.58325 7.36501 7.60873 6.30256 7.65757C5.03991 7.71562 4.00233 8.697 3.83367 9.94973C3.7236 10.7672 3.63281 11.6051 3.63281 12.4583C3.63281 13.3115 3.7236 14.1493 3.83367 14.9668Z"
-      stroke="var(--gray)"
+      stroke="hsl(var(--muted-foreground))"
       strokeWidth="1.125"
     />
     <path
       d="M6.25781 7.58325V5.70825C6.25781 3.84429 7.76885 2.33325 9.63281 2.33325C11.4968 2.33325 13.0078 3.84429 13.0078 5.70825V7.58325"
-      stroke="var(--gray)"
+      stroke="hsl(var(--muted-foreground))"
       strokeWidth="1.125"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -131,14 +131,14 @@ export const fullNameIcon = (
   >
     <path
       d="M13.6641 7.20825C13.6641 5.13719 11.9851 3.45825 9.91406 3.45825C7.843 3.45825 6.16406 5.13719 6.16406 7.20825C6.16406 9.2793 7.843 10.9583 9.91406 10.9583C11.9851 10.9583 13.6641 9.2793 13.6641 7.20825Z"
-      stroke="var(--gray)"
+      stroke="hsl(var(--muted-foreground))"
       strokeWidth="1.125"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M15.1641 16.2083C15.1641 13.3088 12.8136 10.9583 9.91406 10.9583C7.01457 10.9583 4.66406 13.3088 4.66406 16.2083"
-      stroke="var(--gray)"
+      stroke="hsl(var(--muted-foreground))"
       strokeWidth="1.125"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -245,7 +245,7 @@ export default function SignInForm({
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <div className="relative md:w-[382px]">
-                  <span className="text-gray absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform">
+                  <span className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform">
                     {emailIcon}
                   </span>
                   <Input
@@ -254,8 +254,8 @@ export default function SignInForm({
                     type="email"
                     placeholder="Enter your email address"
                     className={cn(
-                      'border-gray placeholder:text-gray text-text h-12 rounded pr-10 text-base font-medium outline-none md:w-[382px] md:text-base',
-                      fieldState.error && 'border-danger'
+                      'h-12 rounded pr-10 text-base font-medium outline-none md:w-[382px] md:text-base',
+                      fieldState.error && 'border-destructive'
                     )}
                     data-testid="email-input"
                   />
@@ -274,7 +274,7 @@ export default function SignInForm({
               <FormLabel>Password</FormLabel>
               <FormControl>
                 <div className="relative md:w-[382px]">
-                  <span className="text-gray absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform">
+                  <span className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform">
                     {passwordIcon}
                   </span>
                   <Input
@@ -282,8 +282,8 @@ export default function SignInForm({
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     className={cn(
-                      'placeholder:text-gray border-gray text-text h-12 rounded pr-10 text-base font-medium outline-none md:text-base',
-                      fieldState.error && 'border-danger'
+                      'h-12 rounded pr-10 text-base font-medium outline-none md:text-base',
+                      fieldState.error && 'border-destructive'
                     )}
                     data-testid="password-input"
                     placeholder="Enter your password"

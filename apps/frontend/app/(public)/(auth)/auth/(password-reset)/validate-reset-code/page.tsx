@@ -20,29 +20,29 @@ export default async function ValidateResetCodePage({
   const params = await searchParams;
   const email = params.email as string;
   return (
-    <SectionContainer className="bg-background-auth w-full py-5 md:bg-transparent">
+    <SectionContainer className="bg-background w-full py-5 md:bg-transparent">
       <div className="flex items-center justify-center px-2.5 xl:px-8">
-        <div className="bg-background-card w-[355px] rounded-[10px] border-0 px-[27px] py-[20px] md:w-[600px] md:px-[50px] md:py-[40px]">
+        <div className="bg-card w-[355px] rounded-[10px] border-0 px-[27px] py-[20px] md:w-[600px] md:px-[50px] md:py-[40px]">
           <div className="flex flex-col items-center justify-center gap-[5px]">
             <AuthLogo />
-            <h2 className="text-font text-center text-3xl leading-[44px] font-bold">
+            <h2 className="text-foreground text-center text-3xl leading-[44px] font-bold">
               Enter Verification Code
             </h2>
-            <p className="text-font-muted mt-[0px] mb-[32px] text-lg">
+            <p className="text-muted-foreground mt-[0px] mb-[32px] text-lg">
               Enter the code sent to your email to continue.
             </p>
           </div>
           <div className="mt-[5px]">
             <Suspense
               fallback={
-                <div className="bg-gray-light h-12 w-full animate-pulse rounded-lg"></div>
+                <div className="bg-muted h-12 w-full animate-pulse rounded-lg"></div>
               }
             >
               <ValidateResetCodeForm email={email} />
             </Suspense>
           </div>
           <div className="flex flex-col justify-center">
-            <p className="text-md text-font mb-8 text-center font-medium">
+            <p className="text-md text-foreground mb-8 text-center font-medium">
               Back to{' '}
               <Link
                 href="/signin"

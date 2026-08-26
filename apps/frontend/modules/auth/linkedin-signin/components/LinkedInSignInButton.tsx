@@ -30,10 +30,10 @@ export default function LinkedInSignInButton({
       type="button"
       onClick={onLinkedInSignInClicked}
       disabled={isLoading}
-      className="flex items-center justify-center gap-3 rounded-2xl border border-[#CBD5E1] bg-[#f3f4f680] px-2 py-3 text-sm font-bold text-[#1F1E1E]"
+      className="border-border bg-muted/50 text-foreground flex items-center justify-center gap-3 rounded-2xl border px-2 py-3 text-sm font-bold"
     >
       {isLoading ? (
-        <div className="h-4 w-4 animate-spin rounded-full border" />
+        <div className="border-muted border-t-muted-foreground h-4 w-4 animate-spin rounded-full border-2" />
       ) : (
         <LinkedInIcon />
       )}

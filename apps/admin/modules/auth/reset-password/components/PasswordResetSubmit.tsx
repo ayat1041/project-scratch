@@ -27,7 +27,7 @@ export default function PasswordResetSubmit({
   return (
     <>
       <div className="mb-[25px] flex w-full justify-end">
-        <span className="text-md text-text ml-auto w-fit text-right font-medium md:text-base">
+        <span className="text-md text-foreground ml-auto w-fit text-right font-medium md:text-base">
           {/* No forgot password link for reset form */}
         </span>
       </div>

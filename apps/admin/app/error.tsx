@@ -15,7 +15,7 @@ export default function Error({
       <div className="mx-auto w-full max-w-lg">
         {/* Error Icon */}
         <div className="mb-8 flex justify-center">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-orange-200">
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-warning/15 to-warning/25">
             <svg
               className="text-primary h-12 w-12"
               fill="none"
@@ -35,13 +35,13 @@ export default function Error({
         {/* Error Message */}
         <div className="space-y-6">
           <div>
-            <h1 className="text-font mb-3 text-5xl font-semibold md:text-7xl">
+            <h1 className="text-foreground mb-3 text-5xl font-semibold md:text-7xl">
               Oops!
             </h1>
-            <h2 className="text-font mb-4 text-lg font-medium md:text-2xl">
+            <h2 className="text-foreground mb-4 text-lg font-medium md:text-2xl">
               Something went wrong
             </h2>
-            <p className="text-text-muted text-base leading-relaxed md:text-lg">
+            <p className="text-muted-foreground text-base leading-relaxed md:text-lg">
               We&apos;re having trouble loading this page. This might be a
               temporary issue.
             </p>
@@ -51,7 +51,7 @@ export default function Error({
           <div className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row">
             <button
               onClick={reset}
-              className="text-background-card focus:ring-primary inline-flex min-w-[140px] items-center justify-center rounded-md bg-[image:var(--gradient-cta)] px-6 py-3 text-sm font-medium shadow-sm transition-all duration-200 hover:bg-[image:var(--gradient-cta-hover)] focus:ring-2 focus:ring-offset-2 focus:outline-none"
+              className="text-primary-foreground bg-primary hover:bg-primary/90 focus:ring-primary inline-flex min-w-[140px] items-center justify-center rounded-md px-6 py-3 text-sm font-medium shadow-sm transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none"
             >
               <svg
                 className="mr-2 h-4 w-4"
@@ -70,7 +70,7 @@ export default function Error({
             </button>
             <Link
               href="/"
-              className="text-font border-border bg-background-card hover:bg-gray-light focus:ring-primary inline-flex min-w-[140px] items-center justify-center rounded-md border px-6 py-3 text-sm font-medium shadow-sm transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+              className="text-foreground border-border bg-card hover:bg-muted focus:ring-primary inline-flex min-w-[140px] items-center justify-center rounded-md border px-6 py-3 text-sm font-medium shadow-sm transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none"
             >
               <svg
                 className="mr-2 h-4 w-4"
@@ -93,10 +93,10 @@ export default function Error({
         {/* Debug info (only in development) */}
         {process.env.NODE_ENV === 'development' && error && (
           <details className="mt-8 text-left">
-            <summary className="text-text-muted hover:text-text cursor-pointer text-sm">
+            <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-sm">
               Debug Information
             </summary>
-            <pre className="bg-gray-light text-text mt-2 max-h-40 overflow-auto rounded-md p-4 text-sm">
+            <pre className="bg-muted text-foreground mt-2 max-h-40 overflow-auto rounded-md p-4 text-sm">
               {error.message}
               {error.stack && '\n\nStack trace:\n' + error.stack}
             </pre>

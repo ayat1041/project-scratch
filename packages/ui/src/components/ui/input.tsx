@@ -26,8 +26,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         className={cn(
           "rounded transition-all duration-200 w-full",
           "ring-2 ring-transparent ring-offset-2 ring-offset-transparent",
-          "has-[:focus]:ring-primary has-[:focus]:ring-offset-white",
-          "has-[:focus-visible]:ring-primary has-[:focus-visible]:ring-offset-white",
+          "has-[:focus]:ring-primary has-[:focus]:ring-offset-background",
+          "has-[:focus-visible]:ring-primary has-[:focus-visible]:ring-offset-background",
           "hover:ring-muted-foreground/0",
           wrapperClassName,
         )}

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function ForgotPage() {
   return (
-    <SectionContainer className="bg-background-auth w-full md:bg-transparent">
+    <SectionContainer className="bg-background w-full md:bg-transparent">
       <div className="flex flex-col items-center justify-center gap-6 px-2.5 xl:px-8">
         <div className="flex flex-col items-center justify-center gap-[5px]">
           <div className="bg-primary/10 mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl">
@@ -30,8 +30,8 @@ export default function ForgotPage() {
             <ForgotPasswordForm />
           </div>
           <div className="mt-7 flex flex-col justify-center">
-            <span className="mb-4 block h-[0.5px] w-full bg-gray-200" />
-            <p className="text-font-100 text-md text-center leading-[20px] font-medium md:text-base">
+            <span className="bg-border mb-4 block h-[0.5px] w-full" />
+            <p className="text-foreground text-md text-center leading-[20px] font-medium md:text-base">
               <Link
                 href="/auth/signin"
                 className="text-muted-foreground hover:text-foreground flex items-center justify-center gap-2 text-sm transition-colors"

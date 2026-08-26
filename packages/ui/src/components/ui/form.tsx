@@ -15,50 +15,28 @@ import {
 import { cn } from "../../lib/utils";
 import { Label } from "./label";
 
-const Form = ({
-  children,
-  ...props
-}: React.PropsWithChildren<Record<string, unknown>>) => {
-  return (
-    <FormProvider
-      {...(props as unknown as React.ComponentProps<typeof FormProvider>)}
-    >
-      {children}
-    </FormProvider>
-  );
-};
+const Form = FormProvider;
 
-type FormFieldContextValue = {
-  name: string;
+type FormFieldContextValue<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+> = {
+  name: TName;
 };
 
 const FormFieldContext = React.createContext<FormFieldContextValue>(
   {} as FormFieldContextValue,
 );
 
-type FormFieldProps = {
-  name: string;
-  render: (props: {
-    field: {
-      value?: string | number | readonly string[];
-      onChange?: (...args: unknown[]) => void;
-      onBlur?: (...args: unknown[]) => void;
-      name?: string;
-      ref?: React.Ref<HTMLInputElement>;
-    } & Record<string, unknown>;
-    fieldState: {
-      error?: boolean | string | object;
-    } & Record<string, unknown>;
-    formState: Record<string, unknown>;
-  }) => React.ReactNode;
-} & Record<string, unknown>;
-
-const FormField = (props: FormFieldProps) => {
+const FormField = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+>({
+  ...props
+}: ControllerProps<TFieldValues, TName>) => {
   return (
     <FormFieldContext.Provider value={{ name: props.name }}>
-      <Controller
-        {...(props as ControllerProps<FieldValues, FieldPath<FieldValues>>)}
-      />
+      <Controller {...props} />
     </FormFieldContext.Provider>
   );
 };
@@ -123,7 +101,7 @@ const FormLabel = React.forwardRef<
       ref={ref}
       className={cn(
         "mb-2",
-        showError ? "text-[var(--danger)]" : "text-[var(--text-color)]",
+        showError ? "text-destructive" : "text-foreground",
         className,
       )}
       htmlFor={formItemId}
@@ -166,7 +144,7 @@ const FormDescription = React.forwardRef<
     <p
       ref={ref}
       id={formDescriptionId}
-      className={cn("text-sm text-[var(--text-muted)]", className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   );
@@ -188,7 +166,7 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn("text-sm font-medium text-amber-500", className)}
+      className={cn("text-sm font-medium text-destructive", className)}
       {...props}
     >
       {body}

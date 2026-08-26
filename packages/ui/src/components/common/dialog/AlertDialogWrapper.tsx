@@ -85,7 +85,7 @@ export default function AlertDialogWrapper({
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent
-        className="max-h-[90vh] overflow-y-auto bg-white"
+        className="max-h-[90vh] overflow-y-auto bg-card"
         data-testid={contentTestId}
       >
         <AlertDialogHeader>
@@ -93,7 +93,7 @@ export default function AlertDialogWrapper({
             {title}
           </AlertDialogTitle>
           {description && (
-            <AlertDialogDescription className="wrap-anywhere whitespace-normal text-[#6B7280]">
+            <AlertDialogDescription className="wrap-anywhere whitespace-normal text-muted-foreground">
               {description}
             </AlertDialogDescription>
           )}

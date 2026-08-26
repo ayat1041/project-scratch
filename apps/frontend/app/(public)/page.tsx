@@ -13,7 +13,7 @@ export default function Home() {
       <FullWidthContainer>
         <SectionContainer>
           <div className="text-center">
-            <h1 className="text-font mb-8 text-4xl font-bold">Starter</h1>
+            <h1 className="text-foreground mb-8 text-4xl font-bold">Starter</h1>
           </div>
         </SectionContainer>
       </FullWidthContainer>
