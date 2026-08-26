@@ -1,0 +1,17 @@
+{
+  "watch": ["src"],
+  "ext": "ts,json",
+  "ignore": [
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "paraphrasedData/**",
+    "storage/**",
+    "data-objects/**",
+    "node_modules/**",
+    "dist/**",
+    "drizzle/**",
+    "docs/**"
+  ],
+  "exec": "tsx src/server.ts",
+  "delay": "1000"
+}

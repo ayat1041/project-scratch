@@ -1,0 +1,22 @@
+---
+# Default variables for deploy-rabbitmq role
+# Override these in group_vars, host_vars, or playbook vars
+
+rabbitmq:
+  image: "rabbitmq:3.13-management-alpine"
+  container_name: "rabbitmq"
+  amqp_port: 5672
+  management_port: 15672
+  host_amqp_port: 5672
+  host_management_port: 15672
+  network: "app-net"
+  network_alias: "rabbitmq"
+  named_volume: "rabbitmq-data"
+  user: "starter"
+  password: "changeme"
+
+# Common network name (should match across all services)
+common_network: "app-net"
+
+# Admin user for directory ownership
+admin_user: "root"

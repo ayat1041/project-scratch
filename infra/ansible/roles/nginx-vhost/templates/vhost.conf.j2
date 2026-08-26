@@ -1,0 +1,101 @@
+# ------------------------------------------------------------
+# HTTP (80): keep open for ACME; redirects to HTTPS
+# ------------------------------------------------------------
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ nginx.domain_name }} {{ nginx.www_domain_name }};
+    underscores_in_headers on;
+
+    # ACME challenge path (safe even before cert)
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type "text/plain";
+    }
+
+    # Once certificate exists, redirect all HTTP to HTTPS (root domain)
+    return 301 https://{{ nginx.domain_name }}$request_uri;
+}
+
+# ------------------------------------------------------------
+# HTTPS (443): primary hostname serves the app
+# ------------------------------------------------------------
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name {{ nginx.domain_name }};
+    underscores_in_headers on;
+
+    ssl_certificate /etc/letsencrypt/live/{{ nginx.domain_name }}/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/{{ nginx.domain_name }}/privkey.pem; # managed by Certbot
+
+    # --- Security headers (see rationale below) ---
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+
+    # (Optional, enable only after testing) Basic CSP to start safe:
+    # add_header Content-Security-Policy "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" always;
+
+    # Hide Nginx version
+    server_tokens off;
+
+    # Client & upstream behavior (sane defaults)
+    client_max_body_size 10M;
+    client_body_timeout 30s;
+    client_header_timeout 30s;
+    send_timeout 60s;
+
+    # If you want real client IPs behind Cloudflare:
+    real_ip_header CF-Connecting-IP;
+    set_real_ip_from 173.245.48.0/20;
+    set_real_ip_from 103.21.244.0/22;
+    set_real_ip_from 103.22.200.0/22;
+    set_real_ip_from 103.31.4.0/22;
+    set_real_ip_from 141.101.64.0/18;
+    set_real_ip_from 108.162.192.0/18;
+    set_real_ip_from 190.93.240.0/20;
+    set_real_ip_from 188.114.96.0/20;
+    set_real_ip_from 197.234.240.0/22;
+    set_real_ip_from 198.41.128.0/17;
+    set_real_ip_from 162.158.0.0/15;
+    set_real_ip_from 104.16.0.0/13;
+    set_real_ip_from 104.24.0.0/14;
+    set_real_ip_from 172.64.0.0/13;
+    set_real_ip_from 131.0.72.0/22;
+
+    # --- Reverse proxy to app ---
+    location / {
+        proxy_pass http://127.0.0.1:{{ nginx.app_port }};
+        proxy_http_version 1.1;
+
+        # Preserve host & client info
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # WebSocket support (harmless if unused)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
+    }
+}
+
+# ------------------------------------------------------------
+# HTTPS (443): www hostname → canonical root (backup redirect)
+# ------------------------------------------------------------
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name {{ nginx.www_domain_name }};
+    underscores_in_headers on;
+
+    ssl_certificate /etc/letsencrypt/live/{{ nginx.domain_name }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ nginx.domain_name }}/privkey.pem;
+
+    return 301 https://{{ nginx.domain_name }}$request_uri;
+}

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Spec-Driven Development</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #131a23;
+    --panel: #161e29;
+    --ink: #e6edf3;
+    --muted: #8b98a9;
+    --accent: #2dd4bf;
+    --accent2: #7c9cff;
+    --good: #3fb950;
+    --bad: #f85149;
+    --warn: #d29922;
+    --border: #233040;
+    --code: #0a0e14;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(1200px 800px at 80% -10%, #16222f 0%, var(--bg) 55%);
+    color: var(--ink);
+    font-family: var(--sans);
+    overflow: hidden;
+  }
+  .deck { height: 100vh; width: 100vw; position: relative; }
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5.5vh 7vw 9vh;
+    animation: fade .35s ease;
+  }
+  .slide.active { display: flex; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .kicker {
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    font-size: .72rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 1.1rem;
+  }
+  h1 { font-size: clamp(2.1rem, 5vw, 3.6rem); line-height: 1.07; letter-spacing: -0.02em; }
+  h2 { font-size: clamp(1.5rem, 3.4vw, 2.4rem); line-height: 1.12; letter-spacing: -0.01em; margin-bottom: 1.6rem; }
+  h1 .sub { display:block; font-size: clamp(1rem, 2vw, 1.4rem); color: var(--muted); font-weight: 500; margin-top: 1.4rem; letter-spacing: 0; }
+  p.lead { font-size: clamp(1.05rem, 1.9vw, 1.4rem); color: var(--ink); max-width: 62ch; line-height: 1.5; }
+  ul { list-style: none; display: flex; flex-direction: column; gap: .95rem; max-width: 72ch; }
+  li { font-size: clamp(1rem, 1.7vw, 1.32rem); line-height: 1.4; padding-left: 1.7rem; position: relative; color: #d6dee8; }
+  li::before { content: "▸"; color: var(--accent); position: absolute; left: 0; top: 0; }
+  li b, li strong { color: #fff; }
+  li .em { color: var(--accent); font-weight: 600; }
+  .muted { color: var(--muted); }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 2.2rem; align-items: start; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.4rem 1.5rem;
+  }
+  .card h3 { font-size: 1rem; color: var(--accent); text-transform: uppercase; letter-spacing: .1em; margin-bottom: .9rem; }
+
+  table { border-collapse: collapse; width: 100%; font-size: clamp(.85rem, 1.4vw, 1.1rem); }
+  th, td { text-align: left; padding: .62rem .9rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: .8em; }
+  td b { color: #fff; }
+  tr:last-child td { border-bottom: none; }
+  .ok { color: var(--good); font-weight: 600; }
+
+  pre {
+    background: var(--code); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.1rem 1.3rem; overflow: auto;
+    font-family: var(--mono); font-size: clamp(.74rem, 1.2vw, 1rem);
+    line-height: 1.6; color: #c9d4e0; max-width: 100%;
+  }
+  code { font-family: var(--mono); background: #1b2531; padding: .08em .4em; border-radius: 5px; font-size: .9em; color: var(--accent); }
+  pre code { background: none; padding: 0; color: inherit; }
+  .c-key { color: var(--accent2); }
+  .c-str { color: var(--accent); }
+  .c-com { color: #5c6b7a; font-style: italic; }
+
+  .pipeline { font-family: var(--mono); font-size: clamp(.78rem, 1.3vw, 1.08rem); line-height: 2.0; color: #c9d4e0; }
+  .pipeline .step { color: var(--muted); }
+  .pipeline .gate { color: var(--accent2); }
+  .pipeline .hl { color: var(--accent); font-weight: 700; }
+
+  p.lead.big-quote { font-size: clamp(1.3rem, 2.6vw, 2rem); line-height: 1.4; max-width: 24ch; }
+  p.lead.big-quote .em { color: var(--accent); }
+
+  .stat-row { display: flex; gap: 3.5rem; flex-wrap: wrap; margin-top: .6rem; }
+  .stat .n { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+  .stat .l { color: var(--muted); font-size: 1rem; margin-top: .3rem; max-width: 22ch; }
+
+  /* chrome */
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .35s ease; z-index: 30; }
+  .footer { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: .8rem 2rem; font-size: .8rem; color: var(--muted); z-index: 20; }
+  .footer .title { letter-spacing: .04em; }
+  .nav { display: flex; gap: .5rem; }
+  .nav button { background: var(--panel); border: 1px solid var(--border); color: var(--ink); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: .15s; }
+  .nav button:hover { border-color: var(--accent); color: var(--accent); }
+  .count { font-variant-numeric: tabular-nums; }
+  .hint { position: fixed; bottom: .9rem; left: 50%; transform: translateX(-50%); color: #44535f; font-size: .72rem; z-index: 20; }
+  @media (max-width: 820px) { .two { grid-template-columns: 1fr; } .stat-row { gap: 1.8rem; } }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 · Title -->
+  <section class="slide active">
+    <div class="kicker">Starter Platform · Engineering · 2026-06-09</div>
+    <h1>Spec-Driven Development
+      <span class="sub">What it is, why it works, and how we build with it.</span>
+    </h1>
+  </section>
+
+  <!-- 2 · Definition -->
+  <section class="slide">
+    <div class="kicker">Definition</div>
+    <h2>What is Spec-Driven Development?</h2>
+    <p class="lead">A development methodology where a <b>precise, reviewed specification is the authoritative source of truth</b> — written and approved before implementation, and kept aligned with the code as it evolves.</p>
+    <p class="lead" style="margin-top:1.4rem">Code, tests, and documentation are <span class="em">derived from and traceable to the spec</span> — not the other way around.</p>
+  </section>
+
+  <!-- 3 · Core idea -->
+  <section class="slide">
+    <div class="kicker">The core idea</div>
+    <h2>The spec is the contract, not decoration</h2>
+    <ul>
+      <li><b>Progressive refinement</b> — intent becomes a functional spec, then a technical design, then concrete tasks.</li>
+      <li><b>Ambiguity resolved up front</b> — decisions are made when they're cheap (in a document), not late (in production).</li>
+      <li><b>One source of truth</b> — every fact has a single owning artifact; everything else references it.</li>
+      <li><b>Living, not frozen</b> — the spec is reconciled with the code so it stays true over time.</li>
+    </ul>
+  </section>
+
+  <!-- 4 · Spec-driven vs code-first -->
+  <section class="slide">
+    <div class="kicker">Two ways to build software</div>
+    <h2>Spec-driven vs. code-first</h2>
+    <table>
+      <tr><th>Dimension</th><th>Code-first</th><th>Spec-driven</th></tr>
+      <tr><td>Source of truth</td><td>the code</td><td><b>the spec</b></td></tr>
+      <tr><td>When ambiguity surfaces</td><td>during / after coding</td><td><b>before coding</b></td></tr>
+      <tr><td>Onboarding</td><td>read the code</td><td><b>read the spec</b></td></tr>
+      <tr><td>AI code generation</td><td>improvised</td><td><b>spec-guided</b></td></tr>
+      <tr><td>Change safety</td><td>tribal knowledge</td><td><b>documented contract</b></td></tr>
+    </table>
+  </section>
+
+  <!-- 5 · Benefits overview -->
+  <section class="slide">
+    <div class="kicker">Benefits</div>
+    <h2>Why spec-driven development</h2>
+    <ul>
+      <li><b>Less rework</b> — build the right thing once; mistakes are caught on paper.</li>
+      <li><b>Parallel execution</b> — teams work concurrently against a shared, stable contract.</li>
+      <li><b>Trustworthy AI output</b> — agents generate from accurate specs, correctly, at scale.</li>
+      <li><b>Faster onboarding</b> — documentation you can actually trust.</li>
+      <li><b>Audit-ready</b> — every requirement traces to code, tests, and API docs.</li>
+      <li><b>Quality by construction</b> — consistency is enforced, not hoped for.</li>
+    </ul>
+  </section>
+
+  <!-- 6 · Benefits per role -->
+  <section class="slide">
+    <div class="kicker">Benefits · who gains</div>
+    <h2>Value for every role</h2>
+    <table>
+      <tr><th>Role</th><th>What they get</th></tr>
+      <tr><td><b>Product</b></td><td>Scope &amp; acceptance criteria locked and reviewed before build</td></tr>
+      <tr><td><b>Engineering</b></td><td>A clear contract to build against — far less rework</td></tr>
+      <tr><td><b>QA</b></td><td>Test scenarios derived directly from acceptance criteria</td></tr>
+      <tr><td><b>Support &amp; Docs</b></td><td>Documentation that matches the running system</td></tr>
+      <tr><td><b>AI agents</b></td><td>Accurate input → correct code, tests, and docs at scale</td></tr>
+    </table>
+  </section>
+
+  <!-- 7 · Our flow — pipeline -->
+  <section class="slide">
+    <div class="kicker">How our flow works</div>
+    <h2>One reviewed chain, intent to API</h2>
+    <pre class="pipeline">
+<span class="step">1.</span>  Product input ──── lovable routes + workflow spec
+<span class="step">2.</span>  Functional spec ── FRD (business contract)   <span class="gate">► review: Product + QA + Eng</span>
+<span class="step">3.</span>  Technical design ─ TDD (how it's built)
+<span class="step">4.</span>  GitHub issues ──── scoped, testable work
+<span class="step">5.</span>  Implementation ─── code + review
+<span class="step">6.</span>  Runtime docs ───── as-built behavior + ADRs
+<span class="step">7.</span>  Tests ──────────── integration + E2E (Playwright)
+<span class="step">8.</span>  API docs ───────── OpenAPI / Swagger
+<span class="hl">9.  Reconciliation ─── specs kept aligned + consistency enforced in CI</span>
+    </pre>
+    <ul style="margin-top:1.4rem"><li>Every stage has a <b>codified instruction guide</b> an engineer — or an AI agent — follows.</li></ul>
+  </section>
+
+  <!-- 8 · The artifact chain -->
+  <section class="slide">
+    <div class="kicker">How our flow works · artifacts</div>
+    <h2>Each document answers one question</h2>
+    <table>
+      <tr><th>Artifact</th><th>Answers</th></tr>
+      <tr><td><b>Lovable-FRD</b></td><td>UI-faithful behavior from the product prototype</td></tr>
+      <tr><td><b>FRD</b></td><td><i>What</i> we build and <i>why</i> — the business contract</td></tr>
+      <tr><td><b>TDD</b></td><td><i>How</i> it's built — schema, endpoints, flows</td></tr>
+      <tr><td><b>Issues</b></td><td><i>Who</i> does <i>what</i>, in what order</td></tr>
+      <tr><td><b>Runtime docs + ADRs</b></td><td>As-built behavior, and the "why" behind decisions</td></tr>
+      <tr><td><b>Tests + OpenAPI</b></td><td>Proof against acceptance criteria + the API contract</td></tr>
+    </table>
+  </section>
+
+  <!-- 9 · Surface conflicts early -->
+  <section class="slide">
+    <div class="kicker">How our flow works · lovable FRD stage</div>
+    <h2>Surface conflicts early, before FRD</h2>
+    <ul>
+      <li>The <b>lovable FRD</b> is generated from product UI + workflow docs — the only stage where both are in context together.</li>
+      <li>We explicitly capture <span class="em">Source Conflicts</span> when UI and docs disagree — never silently pick a winner.</li>
+      <li>We capture <span class="em">Open Questions</span> where neither source answers — marked for product decision.</li>
+      <li>These flow forward to the engineering FRD marked by ID so <b>nothing gets lost or forgotten</b>.</li>
+      <li>Result: ambiguities surface at the cheapest point — before engineering time is spent.</li>
+    </ul>
+  </section>
+
+  <!-- 10 · FR ↔ AC Traceability -->
+  <section class="slide">
+    <div class="kicker">How our flow works · requirements traceability</div>
+    <h2>FR and AC linked bidirectionally</h2>
+    <ul>
+      <li>Every <b>Functional Requirement</b> explicitly links to the <span class="em">Acceptance Criteria</span> that verify it.</li>
+      <li>Every <span class="em">AC</span> links back to its FR — so relationships are visible and complete.</li>
+      <li>Gaps are <b>impossible to hide</b>: untested FRs and orphaned ACs surface immediately.</li>
+      <li>Example: <code>FR-7: sort by updatedAt</code> → <code>AC-3: rows sorted desc by updatedAt</code></li>
+      <li>This is baked into our <b>FRD authoring guide</b> — every new FRD follows it by default.</li>
+    </ul>
+  </section>
+
+  <!-- 11 · AC → Test Traceability -->
+  <section class="slide">
+    <div class="kicker">How our flow works · test traceability</div>
+    <h2>Tests linked to acceptance criteria</h2>
+    <ul>
+      <li>Every test case declares which AC(s) it validates — via a comment header and inline AC labels.</li>
+      <li>This completes the traceability chain: <b>Requirement → Spec → Test Code</b> — all navigable by ID.</li>
+      <li>Finding what breaks when a spec changes: <code>grep "AC-5" *.test.ts</code> → all affected tests.</li>
+      <li>Coverage gaps are visible: AC with no test comment = unverified requirement.</li>
+      <li>Result: 100% of requirements trace end-to-end, and impact analysis is instant.</li>
+    </ul>
+  </section>
+
+  <!-- 12 · Standardization enables SDD -->
+  <section class="slide">
+    <div class="kicker">How our flow works · standardization</div>
+    <h2>Consistent naming and structure amplify SDD</h2>
+    <div class="two">
+      <div>
+        <ul style="gap:.85rem">
+          <li><b>Naming conventions</b> — entity-first files, camelCase functions, SCREAMING_SNAKE_CASE constants — so code intent is <span class="em">obvious without reading it</span>.</li>
+          <li><b>File structure</b> — consistent routes/controllers/services/validations boundaries — so the codebase <span class="em">matches the architectural diagram</span>.</li>
+          <li><b>API workflow</b> — middleware order, permission flow, resource resolution — so every endpoint is built the same way.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Why this matters</h3>
+        <ul style="gap:.55rem; font-size:.95rem">
+          <li>Specs map to code locations by pattern</li>
+          <li>AI agents generate consistently</li>
+          <li>Code review finds deviations instantly</li>
+          <li>New team members onboard by pattern</li>
+          <li>Drift detection is automated</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · Review gate -->
+  <section class="slide">
+    <div class="kicker">How our flow works · the gate</div>
+    <h2>Reviewed before a line is written</h2>
+    <ul>
+      <li>The FRD is <b>signed off by Product, QA, and Engineering</b> before implementation begins.</li>
+      <li>Business <i>what</i> and technical <i>how</i> live in <b>separate documents</b> — never blurred.</li>
+      <li>Non-obvious decisions are logged as <b>ADRs</b> and linked from the specs.</li>
+      <li>This front-loads alignment, so coding starts from agreement, not assumption.</li>
+    </ul>
+  </section>
+
+  <!-- 14 · Single source of truth -->
+  <section class="slide">
+    <div class="kicker">How our flow works · consistency</div>
+    <h2>One source of truth per fact</h2>
+    <table>
+      <tr><th>Fact category</th><th>Owning artifact</th><th>Everyone else</th></tr>
+      <tr><td>Business rules, acceptance criteria</td><td><b>FRD</b></td><td>reference by ID</td></tr>
+      <tr><td>Schema, endpoints, state transitions</td><td><b>code</b></td><td>TDD proposes; runtime-doc reflects</td></tr>
+      <tr><td>Status enums, validation, error messages</td><td><b>code / constants</b></td><td>FRD links; swagger documents</td></tr>
+      <tr><td>Design decisions (the "why")</td><td><b>ADR</b></td><td>FRD / TDD link to it</td></tr>
+    </table>
+    <ul style="margin-top:1.5rem"><li>Baked into our <b>FRD and TDD authoring guides</b> — every new document follows it by default.</li></ul>
+  </section>
+
+  <!-- 15 · Reconciliation -->
+  <section class="slide">
+    <div class="kicker">How our flow works · staying true</div>
+    <h2>Specs track the code</h2>
+    <div class="two">
+      <div>
+        <ul style="gap:.85rem">
+          <li>A <b>reconciliation step</b> keeps specs matching the implementation as it evolves.</li>
+          <li>It reads the <span class="em">actual code</span> — schema, routes, validations — and aligns the docs.</li>
+          <li>Genuine product disagreements are <b>raised for a decision</b>, never silently overwritten.</li>
+          <li>Every document is stamped <code>Last reconciled</code>, so staleness is visible.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What stays in sync</h3>
+        <ul style="gap:.55rem; font-size:.95rem">
+          <li>State / status values</li>
+          <li>State transitions</li>
+          <li>Validation rules &amp; limits</li>
+          <li>Error messages → HTTP codes</li>
+          <li>Endpoints ↔ API docs</li>
+          <li>Permissions &amp; async behavior</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 · Enforced -->
+  <section class="slide">
+    <div class="kicker">How our flow works · enforcement</div>
+    <h2>Consistency is enforced, not optional</h2>
+    <pre><span class="c-com"># .github/workflows/backend-ci.yml</span>
+- <span class="c-key">name</span>: Spec drift check
+  <span class="c-key">run</span>: pnpm --filter backend check:spec-drift</pre>
+    <ul style="margin-top:1.4rem">
+      <li>Our CI <b>blocks any merge</b> that introduces inconsistency — e.g. an endpoint without API docs, or a state in code missing from its spec.</li>
+      <li>Developers get the same check as a <b>fast, non-blocking warning</b> before they commit.</li>
+      <li><span class="em">Consistency is guaranteed by the pipeline</span> — it doesn't depend on anyone remembering.</li>
+    </ul>
+  </section>
+
+  <!-- 17 · AI-assisted -->
+  <section class="slide">
+    <div class="kicker">Why it matters</div>
+    <h2>Specs are the control plane for AI</h2>
+    <ul>
+      <li>Our pipeline is <b>AI-assisted at every stage</b> — agents generate by reading the specs.</li>
+      <li>Accurate spec in → <span class="em">correct code, tests, and docs out</span> — automatically.</li>
+      <li>So spec quality is the <b>highest-leverage investment</b> we can make in engineering output.</li>
+    </ul>
+    <p class="lead big-quote" style="margin-top:2rem">This is what makes AI a <span class="em">force multiplier</span> — not a liability multiplier.</p>
+  </section>
+
+  <!-- 18 · Specs generate contracts & docs -->
+  <section class="slide">
+    <div class="kicker">How our flow works · automation</div>
+    <h2>Specs generate contracts & docs</h2>
+    <ul>
+      <li><b>Swagger / OpenAPI</b> is auto-generated from the TDD — schema, endpoints, and request/response shapes are source-of-truth.</li>
+      <li><b>Technical documentation</b> is generated from code + FRD, describing as-built runtime behavior and state machines.</li>
+      <li><b>ADRs</b> are captured inline in the TDD §7 (Design Decisions) — the "why" behind technical choices, referenced from specs.</li>
+      <li>Result: <span class="em">no manual doc maintenance</span> — contracts and rationale are always aligned with implementation.</li>
+    </ul>
+  </section>
+
+  <!-- Harness · the bigger picture -->
+  <section class="slide">
+    <div class="kicker">Harness engineering · the bigger picture</div>
+    <h2>Zooming out: harness engineering</h2>
+    <p class="lead">Spec-driven development is one piece of a larger discipline — <b>harness engineering</b>: building the whole system <i>around</i> the AI so its capability becomes correct work, <span class="em">reliably and repeatably</span>.</p>
+    <table style="margin-top:1.6rem">
+      <tr><th>&nbsp;</th><th>Prompt engineering</th><th>Harness engineering</th></tr>
+      <tr><td>What it tunes</td><td>the words in one request</td><td><b>the environment the AI works in</b></td></tr>
+      <tr><td>Quality depends on</td><td>the model remembering</td><td><b>the system enforcing</b></td></tr>
+      <tr><td>Scope</td><td>a single answer</td><td><b>every answer, every time</b></td></tr>
+    </table>
+    <ul style="margin-top:1.4rem"><li><b>In plain English:</b> don't just give the AI good instructions — build a <span class="em">factory with quality gates</span> around it, so good output isn't luck.</li></ul>
+  </section>
+
+  <!-- Harness · the core rule -->
+  <section class="slide">
+    <div class="kicker">Harness engineering · the core rule</div>
+    <h2>Anything important is enforced, not hoped for</h2>
+    <p class="lead">A rule that lives only in someone's memory — human <i>or</i> AI — eventually gets skipped. So every rule we care about is pinned to a level of enforcement, and promoted upward as it proves reliable.</p>
+    <table style="margin-top:1.4rem">
+      <tr><th>Level</th><th>How it's enforced</th><th>Strength</th></tr>
+      <tr><td>Context</td><td>instruction files the AI auto-reads</td><td>guidance</td></tr>
+      <tr><td>Warn</td><td>a heads-up before commit / at session start</td><td>nudge</td></tr>
+      <tr><td>Block locally</td><td>the commit is refused until it's fixed</td><td>strong</td></tr>
+      <tr><td>Block in CI</td><td><b>the merge is refused until it's fixed</b></td><td><b>strongest</b></td></tr>
+    </table>
+    <ul style="margin-top:1.3rem"><li>Heuristics stay as <b>warnings</b>; only mechanical, unambiguous rules become <span class="em">hard gates</span> — so we never train people to bypass the system.</li></ul>
+  </section>
+
+  <!-- Harness · our system -->
+  <section class="slide">
+    <div class="kicker">Harness engineering · our system</div>
+    <h2>Five layers working together</h2>
+    <table>
+      <tr><th>Layer</th><th>What it does</th><th>In plain English</th></tr>
+      <tr><td><b>Context</b></td><td>instruction files, ADRs, knowledge graph</td><td>the AI knows our rules before it starts</td></tr>
+      <tr><td><b>Determinism</b></td><td>git hooks + CI gates</td><td>bad patterns are blocked automatically</td></tr>
+      <tr><td><b>Spec Sync</b></td><td>drift &amp; staleness checkers</td><td>specs and code can't silently diverge</td></tr>
+      <tr><td><b>Specialists</b></td><td>scoped AI sub-agents</td><td>each AI role has limited, safe powers</td></tr>
+      <tr><td><b>Evals</b></td><td>golden-task scoring</td><td>we measure whether the AI factory still works</td></tr>
+    </table>
+    <ul style="margin-top:1.4rem"><li>Each layer catches what the one above it can't — defense in depth for AI-assisted work.</li></ul>
+  </section>
+
+  <!-- Harness · closing the loop -->
+  <section class="slide">
+    <div class="kicker">Harness engineering · closing the loop</div>
+    <h2>From "we should" to "the system won't let us not"</h2>
+    <ul>
+      <li><b>Tests must trace to requirements — in CI.</b> Every acceptance criterion needs a test, or the build fails. <span class="muted">(was a comment convention)</span></li>
+      <li><b>The AI's knowledge map can't go stale silently.</b> If code changed but the map didn't, we're warned before trusting it.</li>
+      <li><b>Specs that fall behind code raise a flag</b> — an automated check counts how far a spec has drifted.</li>
+      <li><b>Integration tests run in CI</b> against a real database, so "tests pass" is gated, not assumed.</li>
+      <li><b>We test our instructions, not just our code</b> — see next slide.</li>
+    </ul>
+  </section>
+
+  <!-- Harness · measuring itself -->
+  <section class="slide">
+    <div class="kicker">Harness engineering · measuring itself</div>
+    <h2>Golden tasks: testing the instructions, not just the code</h2>
+    <div class="two">
+      <div>
+        <ul style="gap:.85rem">
+          <li>We keep a set of <b>reference tasks</b> (e.g. "build this endpoint") with known-good answers.</li>
+          <li>When we change an instruction, we <b>re-run the tasks and score the output</b>.</li>
+          <li>Score went up? Keep the change. Went down? The "improvement" hurt — revert it.</li>
+          <li><span class="em">This is the feedback loop for the harness itself</span> — without it, every instruction edit is a blind guess.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Why this matters</h3>
+        <ul style="gap:.55rem; font-size:.95rem">
+          <li>Tuning stops being guesswork</li>
+          <li>Regressions caught before they ship</li>
+          <li>The harness improves measurably over time</li>
+          <li>Same idea as unit tests — but for our process</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Harness · why it matters -->
+  <section class="slide">
+    <div class="kicker">Harness engineering · why it matters</div>
+    <h2>The harness is the real product</h2>
+    <ul>
+      <li>Spec-driven development gives the AI <b>the right input</b>; harness engineering makes sure it produces <b>the right output — every time</b>.</li>
+      <li>As models get more capable, the leverage shifts <span class="em">from the prompt to the harness</span>.</li>
+      <li>The durable edge isn't a clever prompt — it's a <b>better system around the model</b>.</li>
+    </ul>
+    <p class="lead big-quote" style="margin-top:2rem">We don't hope the AI does the right thing. <span class="em">We engineer it so it can't easily do the wrong one.</span></p>
+  </section>
+
+  <!-- 19 · The code reduction myth -->
+  <section class="slide">
+    <div class="kicker">Reality check</div>
+    <h2>The "80-90% faster" claim is overstated</h2>
+    <table>
+      <tr><th>Claim</th><th>True For</th><th>Not True For</th></tr>
+      <tr><td><b>80-90% fewer lines of code</b></td><td>Boilerplate, CRUD, controllers, tests, docs ✓</td><td>Overall time investment ✗</td></tr>
+      <tr><td><b>Code review is faster</b></td><td>AI output is consistent</td><td>Scrutiny can be MORE thorough (you must verify AI is correct)</td></tr>
+      <tr><td><b>No rework needed</b></td><td>Less refactoring for requirements misunderstanding</td><td>Still need debugging, optimization, edge-case fixes</td></tr>
+    </table>
+    <ul style="margin-top:1.2rem">
+      <li><b>Honest assessment:</b> Overall development time savings are <span class="em">10-30%</span> (not the claimed 30-50%), and only if specs are excellent.</li>
+      <li>Time saved on code generation is offset by time spent on spec review, code scrutiny, and debugging.</li>
+    </ul>
+  </section>
+
+  <!-- 20 · The actual value -->
+  <section class="slide">
+    <div class="kicker">What you actually gain</div>
+    <h2>The REAL value isn't speed — it's quality and certainty</h2>
+    <ul>
+      <li><b>Higher quality</b> — AI enforces consistent patterns every time. No style drift, fewer human oversights.</li>
+      <li><b>Fewer rework cycles</b> — Clear specs eliminate requirement ambiguity. You build the right thing once, not iterate six times.</li>
+      <li><b>Parallel execution</b> — Stable specs let teams work independently on different features without blocking each other.</li>
+      <li><b>Full traceability</b> — Every requirement → spec → code → test → doc. Impact analysis and compliance audits are instant.</li>
+      <li><b>Knowledge preservation</b> — Specs are living documentation. New team members onboard by reading specs, not reverse-engineering code.</li>
+    </ul>
+    <p class="lead" style="margin-top:1.4rem">The win is <span class="em">predictability and quality</span>, not speed. Speed follows when you don't have to redo things.</p>
+  </section>
+
+  <!-- 20.5 · What is Harness Engineering -->
+  <section class="slide">
+    <div class="kicker">The Complete Picture</div>
+    <h2>What is Harness Engineering?</h2>
+    <div class="two" style="gap: 3rem; align-items: center;">
+      <div>
+        <p class="lead" style="margin-bottom: 1.8rem;"><span class="em">Agent = Model + Harness</span></p>
+        <p class="lead" style="font-size: clamp(.95rem, 1.5vw, 1.2rem); color: var(--muted); margin-bottom: 1.8rem;">The harness is <span class="em">everything you wrap around the model</span> to make good output reliable.</p>
+        <ul style="gap: .65rem; font-size: clamp(.85rem, 1.5vw, 1rem);">
+          <li><b>Rules</b> — conventions that guide your agent</li>
+          <li><b>Skills</b> — processes it follows</li>
+          <li><b>MCP servers</b> — capabilities you give it</li>
+          <li><b>LSP</b> — how it navigates your codebase</li>
+          <li><b>Hooks</b> — guardrails enforcing actions</li>
+          <li><b>Subagents</b> — work delegation for efficiency</li>
+        </ul>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; flex: 1;">
+        <img src="./assets/harness-engineering-2.png" alt="Harness Engineering Layer Diagram" style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain;">
+      </div>
+    </div>
+  </section>
+
+  <!-- 21 · Outcomes -->
+  <section class="slide">
+    <div class="kicker">What this gives us</div>
+    <h2>The result</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="n">100%</div><div class="l">of requirements traceable to code, tests, and API docs</div></div>
+      <div class="stat"><div class="n">By&nbsp;design</div><div class="l">documentation that matches the running system</div></div>
+      <div class="stat"><div class="n">In&nbsp;CI</div><div class="l">consistency machine-guaranteed, not discipline-dependent</div></div>
+    </div>
+    <ul style="margin-top:2rem"><li>New features arrive fully specified, reviewed, implemented, tested, and documented — as one coherent chain.</li></ul>
+  </section>
+
+  <!-- 22 · Summary -->
+  <section class="slide">
+    <div class="kicker">Summary</div>
+    <h2>Spec-driven development, in three lines</h2>
+    <ul>
+      <li><b>Definition</b> — the spec is the authoritative, living source of truth; code derives from it.</li>
+      <li><b>Benefits</b> — less rework, parallel execution, trustworthy AI output, and audit-readiness.</li>
+      <li><b>Our flow</b> — a reviewed artifact chain, one source of truth per fact, and consistency enforced in CI.</li>
+    </ul>
+    <p class="lead muted" style="margin-top:2rem">Questions?</p>
+  </section>
+
+</div>
+
+<div class="footer">
+  <span class="title">Spec-Driven Development</span>
+  <div class="nav">
+    <button id="prev" aria-label="Previous">‹</button>
+    <span class="count"><span id="cur">1</span> / <span id="total">23</span></span>
+    <button id="next" aria-label="Next">›</button>
+  </div>
+</div>
+<div class="hint">← → / Space to navigate · F for fullscreen</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let i = 0;
+  const progress = document.getElementById('progress');
+  const cur = document.getElementById('cur');
+  document.getElementById('total').textContent = total;
+
+  function show(n) {
+    i = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    progress.style.width = ((i + 1) / total * 100) + '%';
+    cur.textContent = i + 1;
+    location.hash = i + 1;
+  }
+  function next() { show(i + 1); }
+  function prev() { show(i - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(total - 1);
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('prev').addEventListener('click', prev);
+
+  const start = parseInt(location.hash.replace('#', ''), 10);
+  show(Number.isFinite(start) && start >= 1 ? start - 1 : 0);
+</script>
+</body>
+</html>

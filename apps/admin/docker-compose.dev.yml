@@ -1,0 +1,22 @@
+# version: '3.8'
+services:
+  starter-admin-app-dev:
+    image: starter-admin-app-dev
+    build:
+      context: ../../
+      dockerfile: apps/admin/Dockerfile
+      target: dev
+
+    container_name: starter-admin-app-dev
+    ports:
+      - '3003:3000'
+    volumes:
+      - .:/usr/src/app/apps/admin
+      - node_modules:/usr/src/app/apps/admin/node_modules
+      - build:/usr/src/app/apps/admin/.next
+    env_file:
+      - .env
+
+volumes:
+  node_modules:
+  build:

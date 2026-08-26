@@ -1,0 +1,17 @@
+# Vault variables for the "app" host.
+#
+# Steps:
+#   1. Copy this file: cp app_vault.yml.example app_vault.yml
+#   2. Fill in real values below
+#   3. Encrypt it:      ansible-vault encrypt app_vault.yml
+#   4. Run playbooks:   ansible-playbook ... --ask-vault-pass
+#                       (or set ANSIBLE_VAULT_PASSWORD_FILE)
+#
+# Never commit the unencrypted app_vault.yml — it is gitignored.
+# The encrypted version IS safe to commit.
+
+vault_admin_user_password: "CHANGE_ME"
+vault_email_smtp_password: "CHANGE_ME"
+vault_postgres_password: "CHANGE_ME"
+vault_redis_password: "CHANGE_ME"
+vault_rabbitmq_password: "CHANGE_ME"

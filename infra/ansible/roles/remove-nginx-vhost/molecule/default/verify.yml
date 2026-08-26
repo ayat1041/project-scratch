@@ -1,0 +1,27 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  vars:
+    domain: "test.example.com"
+  tasks:
+    - name: Assert vhost symlink is removed from sites-enabled
+      ansible.builtin.stat:
+        path: "/etc/nginx/sites-enabled/{{ domain }}"
+      register: vhost_link
+
+    - name: Assert symlink is absent
+      ansible.builtin.assert:
+        that: not vhost_link.stat.exists
+        fail_msg: "Vhost symlink still exists in sites-enabled after removal"
+
+    - name: Assert vhost file is removed from sites-available
+      ansible.builtin.stat:
+        path: "/etc/nginx/sites-available/{{ domain }}"
+      register: vhost_file
+
+    - name: Assert vhost file is absent
+      ansible.builtin.assert:
+        that: not vhost_file.stat.exists
+        fail_msg: "Vhost config file still exists in sites-available after removal"

@@ -1,0 +1,31 @@
+# ------------------------------------------------------------
+# Default catch-all: block direct IP access and unknown hostnames
+#
+# Without this, Nginx falls back to the first site-enabled
+# vhost for any request that doesn't match a server_name,
+# which means visiting https://<IP>/ would serve app content.
+# ------------------------------------------------------------
+
+# HTTP catch-all — silently drop the connection
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    server_name _;
+
+    # 444 = Nginx closes the connection without sending a response
+    return 444;
+}
+
+# HTTPS catch-all — reject the TLS handshake before any content is served
+# Requires Nginx >= 1.19.4 (Ubuntu 22.04+ ships this by default)
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+
+    server_name _;
+
+    # Terminates the TLS handshake with a TLS alert — no certificate
+    # is presented, no app content is ever reached.
+    ssl_reject_handshake on;
+}

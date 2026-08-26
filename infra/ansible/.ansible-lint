@@ -1,0 +1,26 @@
+---
+profile: production
+
+# Paths to lint
+lint_paths:
+  - playbooks/
+  - roles/
+
+exclude_paths:
+  - .cache/
+  - molecule/
+
+# Warn instead of fail on these (they're enforced but non-blocking)
+warn_list:
+  - yaml[truthy]
+  - name[casing]
+
+# Skip rules that conflict with intentional patterns
+skip_list:
+  - no-changed-when   # some command: tasks intentionally have no changed_when
+
+# Require FQCN for all module calls (e.g. ansible.builtin.apt not apt)
+use_default_rules: true
+
+# Offline — don't hit galaxy.ansible.com on every lint run
+offline: true

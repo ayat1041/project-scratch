@@ -1,0 +1,13 @@
+services:
+  starter-frontend-app-prod:
+    container_name: starter-frontend-prod
+    image: starter-frontend-app-prod
+    build:
+      context: ../../
+      dockerfile: apps/frontend/Dockerfile
+      target: runtime
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    restart: always

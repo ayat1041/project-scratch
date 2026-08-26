@@ -1,0 +1,28 @@
+---
+# Default variables for deploy-postgres role
+# Override these in group_vars, host_vars, or playbook vars
+
+# postgres:
+#   version: "postgres:15"
+#   container_name: "postgres"
+#   restart_policy: "unless-stopped"
+#   user: "postgres"
+#   password: "changeme"
+#   db: "postgres"
+#   host_port: 5432
+#   container_port: 5432
+#   network: "app-net"
+#   network_alias: "postgres"
+#   data_dir: "/var/lib/postgresql/data"
+#   healthcheck:
+#     test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+#     interval: 30s
+#     timeout: 5s
+#     retries: 3
+#     start_period: 10s
+
+# # Common network name (should match across all services)
+# common_network: "app-net"
+
+# # Admin user for directory ownership
+# admin_user: "root"

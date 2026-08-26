@@ -1,0 +1,21 @@
+{
+  "_comment": "Config for scripts/check-spec-drift.ts — see apps/backend/docs/instructions/spec-sync.instructions.md. Paths are relative to apps/backend.",
+  "endpointSwagger": {
+    "modulesRoot": "src/modules",
+    "_ignoreRouteDirs_comment": "GRANDFATHERED BASELINE: pre-existing modules with undocumented endpoints. This is a tech-debt burn-down list, NOT a permanent allowlist. The check blocks NEW undocumented endpoints; remove a dir from this list once its swagger docs are authored. Goal: empty list.",
+    "ignoreRouteDirs": [
+      "src/modules/common/F5001-countries",
+      "src/modules/common/F5002-states",
+      "src/modules/common/F5003-cities",
+      "src/modules/common/F5004-languages",
+      "src/modules/platform/F9001-cron-jobs",
+      "src/modules/user-management/F6001-permissions",
+      "src/modules/user-management/F6002-roles"
+    ]
+  },
+  "enumChecks": [],
+  "_acTraceability_comment": "Check C: every backend-scoped AC-N in an FRD's acceptance-criteria table must be referenced by a test, and every AC-N in tests must exist in the FRD. outOfScopeMarkers exclude rows whose coverage column flags them as non-backend (e.g. UI-only). ignoreAcIds is a GRANDFATHERED BASELINE of pre-existing untested ACs — a burn-down list, NOT a permanent allowlist. The check blocks NEW untested backend ACs; remove an ID once its test is authored. Goal: empty ignoreAcIds.",
+  "acTraceability": [],
+  "_specStaleness_comment": "Used by scripts/check-spec-stale.ts (WARN-ONLY, git-history heuristic). Counts source commits that landed since each FRD was last updated; warns when the count exceeds thresholdCommits. sourcePaths = code dirs the FRD describes; excludePaths drops the FRD's own docs dir so doc edits don't mask code drift. This is guidance, not a gate — a stale FRD may be intentional.",
+  "specStaleness": []
+}

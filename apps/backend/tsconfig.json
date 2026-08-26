@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES6", // Target ES6+ JavaScript
+    "module": "commonjs", // Use CommonJS modules
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true, // Allow import/export syntax
+    "lib": ["es2021"], // Include ES6 and DOM libraries
+    "skipLibCheck": true, // Skip type checks of library files
+    "forceConsistentCasingInFileNames": true, // Enforce consistent file naming
+    "outDir": "./dist", // Output directory
+    "rootDir": "./src", // Source directory
+    "resolveJsonModule": true, // Allow importing JSON files
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@repo/constants": [
+        "../../packages/constants/dist/index.d.ts",
+        "../../packages/constants/src/index.ts"
+      ],
+      "@repo/schemas-types/*": [
+        "../../packages/schemas-types/dist/*",
+        "../../packages/schemas-types/src/*"
+      ]
+    }
+  },
+  "include": ["src/**/*"], // Include all TypeScript files in the src directory
+  "exclude": ["node_modules", "src/**/__integration__/**"] // Exclude node_modules and jest integration tests
+}

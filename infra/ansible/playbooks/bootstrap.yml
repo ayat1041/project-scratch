@@ -1,0 +1,68 @@
+---
+# Bootstrap Playbook - First-time server setup
+# Run this first on a fresh server with root access
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/bootstrap.yml --ask-pass
+
+- name: Initial Bootstrap (Run as root first time)
+  hosts: webservers
+  gather_facts: yes
+  become: yes
+  vars:
+    ansible_user: root
+    ansible_port: 22
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install basic packages
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - sudo
+          - curl
+          - wget
+        state: present
+
+    - name: Create admin user
+      user:
+        name: "{{ admin_user }}"
+        # password_hash ensures the value stored in /etc/shadow is a proper SHA-512
+        # crypt hash, not the plaintext string. vault_admin_user_password must be
+        # the raw password; Ansible hashes it here.
+        password: "{{ vault_admin_user_password | password_hash('sha512') }}"
+        shell: /bin/bash
+        home: "/home/{{ admin_user }}"
+        create_home: yes
+        groups: sudo
+        append: yes
+
+    - name: Create .ssh directory
+      file:
+        path: "/home/{{ admin_user }}/.ssh"
+        state: directory
+        owner: "{{ admin_user }}"
+        group: "{{ admin_user }}"
+        mode: "0700"
+
+    - name: Add SSH public key
+      copy:
+        content: "{{ admin_public_key }}"
+        dest: "/home/{{ admin_user }}/.ssh/authorized_keys"
+        owner: "{{ admin_user }}"
+        group: "{{ admin_user }}"
+        mode: "0600"
+
+    - name: Configure passwordless sudo for admin user
+      lineinfile:
+        path: /etc/sudoers.d/{{ admin_user }}
+        # NOPASSWD:ALL is intentional for a single-user VPS where the admin key
+        # is the only login method. On multi-user servers, scope to specific
+        # commands: NOPASSWD: /usr/bin/docker, /bin/systemctl
+        line: "{{ admin_user }} ALL=(ALL) NOPASSWD:ALL"
+        create: yes
+        validate: "visudo -cf %s"
+        mode: "0440"

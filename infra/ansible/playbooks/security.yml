@@ -1,0 +1,26 @@
+---
+# Security Playbook - Harden server security
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/security.yml
+
+- name: Security Hardening
+  hosts: webservers
+  gather_facts: yes
+  become: yes
+
+  roles:
+    - role: security-hardening
+      tags: [security, ssh, firewall, fail2ban]
+
+  handlers:
+    - name: restart ssh
+      systemd:
+        name: ssh
+        state: restarted
+
+    - name: restart fail2ban
+      systemd:
+        name: fail2ban
+        state: restarted
+
+    - name: reload sysctl
+      command: sysctl -p /etc/sysctl.d/99-security.conf

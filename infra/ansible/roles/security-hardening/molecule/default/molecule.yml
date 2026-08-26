@@ -1,0 +1,44 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: security-hardening-ubuntu
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    command: /lib/systemd/systemd
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      security-hardening-ubuntu:
+        admin_user: testadmin
+        admin_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFAKEKEY test@test"
+        ssh_port: 22
+        ssh_max_auth_tries: 6
+        ssh_max_sessions: 5
+        ssh_login_grace_time: "30s"
+        admin_trusted_ips:
+          - 127.0.0.1
+        f2b_maxretry: 5
+        f2b_findtime: "10m"
+        f2b_bantime: "30m"
+        firewall_allowed_ports:
+          - "22/tcp"
+          - "80/tcp"
+          - "443/tcp"
+        firewall_deny_ports: []
+        email_smtp_host: "smtp.example.com"
+        email_smtp_port: 587
+        email_smtp_user: "test"
+        email_smtp_password: "test"
+        email_smtp_from: "test@example.com"
+        admin_email: "admin@example.com"
+        mail_domain: "example.com"
+verifier:
+  name: ansible

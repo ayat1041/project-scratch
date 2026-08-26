@@ -1,0 +1,18 @@
+---
+# Database Deployment Playbook - Deploy Postgres, Redis, and RabbitMQ
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/database.yml
+
+- name: Deploy Databases
+  hosts: webservers
+  gather_facts: yes
+  become: yes
+
+  roles:
+    - role: deploy-postgres
+      tags: [database, postgres]
+
+    - role: deploy-redis
+      tags: [database, redis]
+
+    - role: deploy-rabbitmq
+      tags: [messaging, rabbitmq]

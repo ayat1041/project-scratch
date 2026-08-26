@@ -1,0 +1,25 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Assert postgres data directory exists
+      ansible.builtin.stat:
+        path: /tmp/test-postgres-data
+      register: pg_data_dir
+
+    - name: Assert data directory is present
+      ansible.builtin.assert:
+        that: pg_data_dir.stat.exists and pg_data_dir.stat.isdir
+        fail_msg: "PostgreSQL data directory was not created"
+
+    - name: Check postgres container is running
+      ansible.builtin.command: docker ps --filter name=test-postgres --format "{{ '{{' }}.Names{{ '}}' }}"
+      changed_when: false
+      register: container_check
+
+    - name: Assert postgres container is running
+      ansible.builtin.assert:
+        that: "'test-postgres' in container_check.stdout"
+        fail_msg: "PostgreSQL container is not running"

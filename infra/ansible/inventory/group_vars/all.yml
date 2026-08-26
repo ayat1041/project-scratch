@@ -1,0 +1,5 @@
+---
+# Global defaults — override per host in host_vars/
+admin_user: "apps"
+current_user: "softeko-01"
+timezone: "UTC"

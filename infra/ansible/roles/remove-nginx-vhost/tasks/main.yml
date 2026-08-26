@@ -1,0 +1,17 @@
+---
+- name: "Remove vhost symlink from sites-enabled"
+  ansible.builtin.file:
+    path: "{{ nginx_sites_enabled }}/{{ nginx.domain_name }}"
+    state: absent
+    follow: false
+  become: true
+  notify: reload nginx
+  tags: [nginx, vhost, remove]
+
+- name: "Remove vhost file from sites-available"
+  ansible.builtin.file:
+    path: "{{ nginx_sites_available }}/{{ nginx.domain_name }}"
+    state: absent
+  become: true
+  notify: reload nginx
+  tags: [nginx, vhost, remove]

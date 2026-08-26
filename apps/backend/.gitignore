@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.prod
+.pnpm-store/
+storage/
+paraphrasedData/
+cleaned_data/
+paraphrasedData/
+data-objects/
+data-objects/

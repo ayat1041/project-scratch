@@ -1,0 +1,17 @@
+---
+# Nginx Virtual Host Playbook
+# Adds a new virtual host with Let's Encrypt SSL (default) or HTTP-only (vhost_mode=temp).
+#
+# Usage:
+#   SSL vhost (default):  ansible-playbook -i inventory/hosts.yml playbooks/add-nginx-vhost.yml
+#   HTTP-only vhost:      ansible-playbook -i inventory/hosts.yml playbooks/add-nginx-vhost.yml -e vhost_mode=temp
+#   Remove a vhost:       ansible-playbook -i inventory/hosts.yml playbooks/remove-nginx-vhost.yml
+
+- name: Add Nginx Virtual Host
+  hosts: webservers
+  gather_facts: true
+  become: true
+
+  roles:
+    - role: nginx-vhost
+      tags: [nginx, vhost]

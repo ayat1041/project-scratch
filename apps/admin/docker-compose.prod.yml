@@ -1,0 +1,13 @@
+services:
+  starter-admin-app-prod:
+    container_name: starter-admin-prod
+    image: starter-admin-app-prod
+    build:
+      context: ../../
+      dockerfile: apps/admin/Dockerfile
+      target: runtime
+    ports:
+      - '3003:3000'
+    env_file:
+      - .env
+    restart: always

@@ -1,0 +1,25 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: docker-role-ubuntu
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+    cgroupns_mode: host
+    command: /lib/systemd/systemd
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      docker-role-ubuntu:
+        admin_user: testuser
+        docker_users:
+          - testuser
+verifier:
+  name: ansible

@@ -1,0 +1,47 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Assert sshd_config is present
+      ansible.builtin.stat:
+        path: /etc/ssh/sshd_config
+      register: sshd_config
+
+    - name: Assert sshd_config exists
+      ansible.builtin.assert:
+        that: sshd_config.stat.exists
+        fail_msg: "sshd_config is missing"
+
+    - name: Assert PasswordAuthentication is disabled
+      ansible.builtin.command: grep -E "^PasswordAuthentication no" /etc/ssh/sshd_config
+      changed_when: false
+      register: pw_auth_check
+      failed_when: pw_auth_check.rc != 0
+
+    - name: Assert PermitRootLogin is disabled
+      ansible.builtin.command: grep -E "^PermitRootLogin no" /etc/ssh/sshd_config
+      changed_when: false
+      register: root_login_check
+      failed_when: root_login_check.rc != 0
+
+    - name: Assert Fail2Ban is running
+      ansible.builtin.systemd:
+        name: fail2ban
+      register: fail2ban_service
+
+    - name: Assert Fail2Ban is active
+      ansible.builtin.assert:
+        that: fail2ban_service.status.ActiveState == 'active'
+        fail_msg: "fail2ban service is not running"
+
+    - name: Assert kernel sysctl config is present
+      ansible.builtin.stat:
+        path: /etc/sysctl.d/99-security.conf
+      register: sysctl_conf
+
+    - name: Assert sysctl config exists
+      ansible.builtin.assert:
+        that: sysctl_conf.stat.exists
+        fail_msg: "Kernel sysctl security config is missing"

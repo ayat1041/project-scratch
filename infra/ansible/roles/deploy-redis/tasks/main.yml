@@ -1,0 +1,67 @@
+# ...existing code...
+---
+- name: Ensure external Docker network exists ({{ redis.network }})
+  community.docker.docker_network:
+    name: "{{ redis.network }}"
+    state: present
+
+- name: Ensure kernel overcommit is enabled for Redis background saves
+  ansible.builtin.sysctl:
+    name: vm.overcommit_memory
+    value: "1"
+    state: present
+    sysctl_set: true
+    reload: true
+
+- name: Ensure Redis config directory exists
+  ansible.builtin.file:
+    path: "{{ redis.conf_src | dirname }}"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: "0755"
+
+# If you already have a template, keep this; otherwise you can copy a static file
+- name: Deploy redis.conf
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: "{{ redis.conf_src }}"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: "0644"
+
+# Optional: explicitly ensure the named volume exists (Docker would auto-create too)
+- name: Ensure named volume exists ({{ redis.named_volume }})
+  community.docker.docker_volume:
+    name: "{{ redis.named_volume }}"
+    state: present
+
+- name: Run Redis container (compose-equivalent)
+  community.docker.docker_container:
+    name: "{{ redis.container_name }}"
+    image: "{{ redis.image }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ redis.host_port }}:{{ redis.port }}"
+    volumes:
+      - "{{ redis.named_volume }}:/data"
+      - "{{ redis.conf_src }}:/usr/local/etc/redis/redis.conf:ro"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    networks:
+      - name: "{{ redis.network }}"
+        aliases:
+          - "{{ redis.network_alias }}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "{{ redis.password }}", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+- name: Show Redis connection string
+  ansible.builtin.debug:
+    msg: |
+      🎉 Redis is running!
+      Connection string:
+      redis://{{ redis.password }}@{{ ansible_host | default(inventory_hostname) }}:{{ redis.host_port }}

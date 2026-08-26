@@ -1,0 +1,40 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: deploy-postgres-ubuntu
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+    cgroupns_mode: host
+    command: /lib/systemd/systemd
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      deploy-postgres-ubuntu:
+        admin_user: testadmin
+        postgres:
+          version: "postgres:15"
+          container_name: "test-postgres"
+          restart_policy: "unless-stopped"
+          user: "testuser"
+          password: "testpassword"
+          db: "testdb"
+          host_port: 5432
+          container_port: 5432
+          network: "test-network"
+          network_alias: "test-postgres"
+          data_dir: "/tmp/test-postgres-data"
+          healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+verifier:
+  name: ansible

@@ -1,0 +1,39 @@
+# Ansible runtime artifacts
+*.retry
+.ansible/
+ansible.log
+/tmp/ansible_facts/
+
+# Vault files — unencrypted copies must never be committed.
+# After running `ansible-vault encrypt app_vault.yml` the encrypted file IS safe to commit.
+# Track encrypted vault files explicitly: git add -f inventory/host_vars/app_vault.yml
+*_vault.yml
+*.vault
+*.secret
+.vault_pass
+
+# Python
+*.pyc
+__pycache__/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary
+*.tmp
+tmp/
+.cache/

@@ -1,0 +1,29 @@
+{
+  "name": "starter-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "build:packages": "pnpm --filter \"@repo/constants\" --filter \"@repo/utilities\" --filter \"@repo/schemas-types\" build",
+    "dev": "turbo run dev",
+    "dev:frontend": "turbo run dev --filter=frontend",
+    "dev:admin": "turbo run dev --filter=admin",
+    "dev:backend": "turbo run dev --filter=backend",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4",
+    "turbo": "^2.7.6",
+    "typescript": "5.9.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "^0.19.12"
+    }
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

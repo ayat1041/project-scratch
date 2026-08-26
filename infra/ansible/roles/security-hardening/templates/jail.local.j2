@@ -1,0 +1,15 @@
+[DEFAULT]
+backend = systemd
+bantime = {{ f2b_bantime | default('30m') }}
+findtime = {{ f2b_findtime | default('10m') }}
+maxretry = {{ f2b_maxretry | default(8) }}
+banaction = ufw
+ignoreip = 127.0.0.1/8 ::1 {{ admin_trusted_ips | default([]) | join(' ') }}
+
+[sshd]
+enabled = true
+port = {{ ssh_port }}
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = {{ f2b_maxretry | default(8) }}
+bantime = {{ f2b_bantime | default('30m') }}

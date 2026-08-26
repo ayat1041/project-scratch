@@ -1,0 +1,36 @@
+Port {{ ssh_port }}
+Protocol 2
+
+# Auth – key-only, PAM enabled for Ubuntu
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+PubkeyAuthentication yes
+PermitEmptyPasswords no
+
+# Restrict users (ensure {{ admin_user }} exists)
+AllowUsers {{ admin_user }}
+
+# Tolerate clients with many keys (avoid “Too many authentication failures”)
+MaxAuthTries {{ ssh_max_auth_tries | default(8) }}
+MaxSessions {{ ssh_max_sessions }}
+LoginGraceTime {{ ssh_login_grace_time }}
+
+# Network safety
+X11Forwarding no
+AllowTcpForwarding no
+PermitTunnel no
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Throttle unauth burst (optional)
+MaxStartups 10:30:100
+
+# Logging
+SyslogFacility AUTH
+LogLevel INFO
+
+# Subsystem
+Subsystem sftp /usr/lib/openssh/sftp-server

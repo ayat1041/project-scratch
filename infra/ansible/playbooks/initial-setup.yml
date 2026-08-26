@@ -1,0 +1,19 @@
+---
+# Initial Server Setup Playbook
+# Installs essential packages, Docker, and Nginx base configuration.
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/initial-setup.yml --ask-vault-pass
+
+- name: Setup Infrastructure
+  hosts: webservers
+  gather_facts: true
+  become: true
+
+  roles:
+    - role: base-packages
+      tags: [base, packages, system]
+
+    - role: docker
+      tags: [docker, infrastructure]
+
+    - role: nginx-base
+      tags: [nginx, infrastructure]

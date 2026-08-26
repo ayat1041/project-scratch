@@ -1,0 +1,34 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Check essential packages are installed
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert curl is installed
+      ansible.builtin.assert:
+        that: "'curl' in ansible_facts.packages"
+        fail_msg: "curl is not installed"
+
+    - name: Assert git is installed
+      ansible.builtin.assert:
+        that: "'git' in ansible_facts.packages"
+        fail_msg: "git is not installed"
+
+    - name: Assert unattended-upgrades is installed
+      ansible.builtin.assert:
+        that: "'unattended-upgrades' in ansible_facts.packages"
+        fail_msg: "unattended-upgrades is not installed"
+
+    - name: Assert auto-upgrades config exists
+      ansible.builtin.stat:
+        path: /etc/apt/apt.conf.d/20auto-upgrades
+      register: auto_upgrades_conf
+
+    - name: Assert auto-upgrades config is present
+      ansible.builtin.assert:
+        that: auto_upgrades_conf.stat.exists
+        fail_msg: "/etc/apt/apt.conf.d/20auto-upgrades is missing"

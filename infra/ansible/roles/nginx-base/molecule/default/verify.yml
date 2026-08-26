@@ -1,0 +1,44 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Check nginx is installed
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert nginx is installed
+      ansible.builtin.assert:
+        that: "'nginx' in ansible_facts.packages"
+        fail_msg: "nginx is not installed"
+
+    - name: Check nginx service is running
+      ansible.builtin.systemd:
+        name: nginx
+      register: nginx_service
+
+    - name: Assert nginx is active
+      ansible.builtin.assert:
+        that: nginx_service.status.ActiveState == 'active'
+        fail_msg: "nginx service is not running"
+
+    - name: Assert catch-all vhost is present
+      ansible.builtin.stat:
+        path: /etc/nginx/sites-available/00-catch-all
+      register: catch_all
+
+    - name: Assert catch-all vhost exists
+      ansible.builtin.assert:
+        that: catch_all.stat.exists
+        fail_msg: "Default catch-all vhost is missing"
+
+    - name: Assert catch-all vhost is enabled
+      ansible.builtin.stat:
+        path: /etc/nginx/sites-enabled/00-catch-all
+      register: catch_all_enabled
+
+    - name: Assert catch-all symlink exists
+      ansible.builtin.assert:
+        that: catch_all_enabled.stat.exists
+        fail_msg: "Catch-all vhost is not enabled"

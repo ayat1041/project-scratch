@@ -1,0 +1,51 @@
+---
+- name: Ensure external Docker network exists ({{ rabbitmq.network }})
+  community.docker.docker_network:
+    name: "{{ rabbitmq.network }}"
+    state: present
+
+- name: Ensure named volume exists ({{ rabbitmq.named_volume }})
+  community.docker.docker_volume:
+    name: "{{ rabbitmq.named_volume }}"
+    state: present
+
+- name: Run RabbitMQ container
+  community.docker.docker_container:
+    name: "{{ rabbitmq.container_name }}"
+    image: "{{ rabbitmq.image }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ rabbitmq.host_amqp_port }}:{{ rabbitmq.amqp_port }}"
+      - "{{ rabbitmq.host_management_port }}:{{ rabbitmq.management_port }}"
+    env:
+      RABBITMQ_DEFAULT_USER: "{{ rabbitmq.user }}"
+      RABBITMQ_DEFAULT_PASS: "{{ rabbitmq.password }}"
+    volumes:
+      - "{{ rabbitmq.named_volume }}:/var/lib/rabbitmq"
+    networks:
+      - name: "{{ rabbitmq.network }}"
+        aliases:
+          - "{{ rabbitmq.network_alias }}"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  register: rabbitmq_container
+
+- name: Wait until RabbitMQ is healthy
+  community.docker.docker_container_info:
+    name: "{{ rabbitmq.container_name }}"
+  register: rabbitmq_info
+  until: rabbitmq_info.container.State.Health.Status == "healthy"
+  retries: 10
+  delay: 5
+
+- name: Show RabbitMQ connection info
+  ansible.builtin.debug:
+    msg: |
+      RabbitMQ is running!
+      AMQP:          amqp://{{ rabbitmq.user }}:{{ rabbitmq.password }}@{{ ansible_host | default(inventory_hostname) }}:{{ rabbitmq.host_amqp_port }}
+      Management UI: http://{{ ansible_host | default(inventory_hostname) }}:{{ rabbitmq.host_management_port }}

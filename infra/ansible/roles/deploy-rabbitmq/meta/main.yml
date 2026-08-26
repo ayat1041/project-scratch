@@ -1,0 +1,21 @@
+---
+# dependencies:
+#   - role: docker
+#     tags: [infrastructure, docker]
+
+galaxy_info:
+  author: Softeko
+  description: Deploy RabbitMQ in Docker container
+  company: Softeko
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - messaging
+    - rabbitmq
+    - docker
+    - queue

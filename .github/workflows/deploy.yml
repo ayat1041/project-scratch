@@ -1,0 +1,465 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - dev
+      - staging
+
+jobs:
+  # ─── Resolve NODE_ENV from branch — the only hardcoded branch↔env mapping ──
+  env-config:
+    runs-on: ubuntu-latest
+    outputs:
+      node_env: ${{ steps.set.outputs.node_env }}
+    steps:
+      - id: set
+        run: |
+          if [ "${{ github.ref_name }}" = "staging" ]; then
+            echo "node_env=staging" >> "$GITHUB_OUTPUT"
+          else
+            echo "node_env=dev" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ─── Detect path changes ──────────────────────────────────────────
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend-build: ${{ steps.filter.outputs.backend-build }}
+      backend-deploy: ${{ steps.filter.outputs.backend-deploy }}
+      frontend-build: ${{ steps.filter.outputs.frontend-build }}
+      frontend-deploy: ${{ steps.filter.outputs.frontend-deploy }}
+      admin-build: ${{ steps.filter.outputs.admin-build }}
+      admin-deploy: ${{ steps.filter.outputs.admin-deploy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend-build:
+              - 'apps/backend/**'
+              - 'packages/schemas-types/**'
+              - 'packages/constants/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            backend-deploy:
+              - 'apps/backend/**'
+              - 'packages/schemas-types/**'
+              - 'packages/constants/**'
+            frontend-build:
+              - 'apps/frontend/**'
+              - 'packages/schemas-types/**'
+              - 'packages/constants/**'
+              - 'packages/ui/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            frontend-deploy:
+              - 'apps/frontend/**'
+              - 'packages/schemas-types/**'
+              - 'packages/constants/**'
+              - 'packages/ui/**'
+            admin-build:
+              - 'apps/admin/**'
+              - 'packages/schemas-types/**'
+              - 'packages/constants/**'
+              - 'packages/ui/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            admin-deploy:
+              - 'apps/admin/**'
+              - 'packages/schemas-types/**'
+              - 'packages/constants/**'
+              - 'packages/ui/**'
+
+  # ─── Backend ──────────────────────────────────────────────────────
+  backend-build-and-push:
+    needs: [changes, env-config]
+    if: needs.changes.outputs.backend-build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and push backend image
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE }}
+          IMAGE_SUFFIX: ${{ needs.env-config.outputs.node_env }}
+        run: |
+          IMAGE_TAG="${DOCKERHUB_NAMESPACE}/starter-api-${IMAGE_SUFFIX}:${GITHUB_SHA::8}"
+          echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+          docker build -t "${IMAGE_TAG}" -f apps/backend/Dockerfile --target runtime .
+          docker push "${IMAGE_TAG}"
+
+  backend-deploy:
+    needs: [changes, env-config, backend-build-and-push]
+    if: needs.changes.outputs.backend-deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan "${REMOTE_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy backend to VPS
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE }}
+          REMOTE_USER: ${{ vars.REMOTE_USER }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          # Single conditional pick: dev -> vars.ENV_DEV, staging -> vars.ENV_STAGING.
+          # Everything below (ports, container names, network) is parsed out of
+          # this same content — nothing else in this job is env-specific.
+          ENV_CONTENT: ${{ needs.env-config.outputs.node_env == 'staging' && secrets.ENV_STAGING || secrets.ENV_DEV }}
+          IMAGE_SUFFIX: ${{ needs.env-config.outputs.node_env }}
+        run: |
+          IMAGE_TAG="${DOCKERHUB_NAMESPACE}/starter-api-${IMAGE_SUFFIX}:${GITHUB_SHA::8}"
+
+          # Writes the app-runtime keys to a LOCAL file (pure Python I/O — no
+          # shell text-interpolation of secret content anywhere) and prints
+          # only the small, non-secret deploy-infra values for `eval`. Secret
+          # values never pass through shell/heredoc text: a value containing
+          # `$`, a backtick, or a bcrypt-style `$2b$10$...` hash would
+          # otherwise be silently re-interpreted by the *local* shell when
+          # substituted into the unquoted `ssh <<EOF` heredoc below, corrupting
+          # it and desyncing `docker run`'s argument list.
+          eval "$(python3 - <<'PY'
+          import os, re, shlex
+          env_file = os.environ.get("ENV_CONTENT", "")
+          INFRA_KEYS = {
+              "NETWORK_NAME",
+              "PORT",
+              "CONTAINER_NAME",
+              "EMAIL_CONSUMER_CONTAINER_NAME",
+          }
+          KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+          infra = {}
+          container_port = "8000"
+          lines = []
+          for raw in env_file.splitlines():
+              line = raw.strip()
+              if not line or line.startswith("#"):
+                  continue
+              key, sep, value = line.partition("=")
+              key = key.strip()
+              value = value.strip()
+              if not sep or not KEY_RE.match(key):
+                  continue
+              if key == "PORT":
+                  container_port = value
+              if key in INFRA_KEYS:
+                  infra[key] = value
+                  continue
+              lines.append(f"{key}={value}")
+
+          with open("/tmp/backend-runtime.env", "w") as f:
+              f.write("\n".join(lines) + ("\n" if lines else ""))
+
+          for key in INFRA_KEYS:
+              print(f"{key}={shlex.quote(infra.get(key, ''))}")
+          print(f"CONTAINER_PORT={shlex.quote(container_port)}")
+          PY
+          )"
+
+          echo "Resolved: CONTAINER_NAME=${CONTAINER_NAME} NETWORK_NAME=${NETWORK_NAME} PORT=${PORT} CONTAINER_PORT=${CONTAINER_PORT} IMAGE_TAG=${IMAGE_TAG}"
+          echo "Runtime env file: $(wc -l < /tmp/backend-runtime.env) lines"
+
+          scp /tmp/backend-runtime.env "${REMOTE_USER}@${REMOTE_HOST}:/tmp/backend-runtime.env"
+
+          ssh "${REMOTE_USER}@${REMOTE_HOST}" <<EOF
+            set -e
+            sudo docker login -u "${DOCKERHUB_USERNAME}" --password-stdin <<< "${DOCKERHUB_PASSWORD}"
+            echo "Logged in to Docker Hub"
+            sudo docker pull ${IMAGE_TAG}
+            echo "Stopping and removing existing container..."
+            sudo docker stop ${CONTAINER_NAME} || true
+            sudo docker rm ${CONTAINER_NAME} || true
+            echo "Running new container..."
+            sudo docker run --network ${NETWORK_NAME} --network-alias ${CONTAINER_NAME} \
+              -d --name ${CONTAINER_NAME} -p ${PORT}:${CONTAINER_PORT} --restart always --env-file /tmp/backend-runtime.env ${IMAGE_TAG}
+
+            echo "Stopping and removing existing email-send-consumer container..."
+            sudo docker stop ${EMAIL_CONSUMER_CONTAINER_NAME} || true
+            sudo docker rm ${EMAIL_CONSUMER_CONTAINER_NAME} || true
+            echo "Running new email-send-consumer container..."
+            sudo docker run --network ${NETWORK_NAME} \
+              -d --name ${EMAIL_CONSUMER_CONTAINER_NAME} --restart always --env-file /tmp/backend-runtime.env ${IMAGE_TAG} \
+              node dist/workers/email-send-consumer.js
+
+            rm -f /tmp/backend-runtime.env
+            echo "Removing old backend images..."
+            sudo docker images "${DOCKERHUB_NAMESPACE}/starter-api-${IMAGE_SUFFIX}" --format "{{.Repository}}:{{.Tag}}" \
+              | grep -v "${GITHUB_SHA::8}" | xargs -r sudo docker rmi --force || true
+            echo "═══════════════════════════════════════════════════════"
+            echo "Backend deployment completed!"
+            echo "═══════════════════════════════════════════════════════"
+          EOF
+          rm -f /tmp/backend-runtime.env
+
+  # ─── Frontend ─────────────────────────────────────────────────────
+  frontend-build-and-push:
+    needs: [changes, env-config]
+    if: needs.changes.outputs.frontend-build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and push frontend image
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE }}
+          IMAGE_SUFFIX: ${{ needs.env-config.outputs.node_env }}
+          FRONTEND_ENV_CONTENT: ${{ needs.env-config.outputs.node_env == 'staging' && secrets.FRONTEND_ENV_STAGING || secrets.FRONTEND_ENV_DEV }}
+        run: |
+          IMAGE_TAG="${DOCKERHUB_NAMESPACE}/starter-front-${IMAGE_SUFFIX}:${GITHUB_SHA::8}"
+
+          # Write only the app's own runtime vars into the build-time .env —
+          # deploy-infra keys (NETWORK_NAME/PORT/CONTAINER_NAME) don't belong
+          # in the Next.js build.
+          python3 - <<'PY'
+          import os, re
+          env_file = os.environ.get("FRONTEND_ENV_CONTENT", "")
+          INFRA_KEYS = {"NETWORK_NAME", "PORT", "CONTAINER_NAME"}
+          KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+          lines = []
+          for raw in env_file.splitlines():
+              line = raw.strip()
+              if not line or line.startswith("#"):
+                  continue
+              key, sep, value = line.partition("=")
+              key = key.strip()
+              if not sep or not KEY_RE.match(key) or key in INFRA_KEYS:
+                  continue
+              lines.append(f"{key}={value.strip()}")
+          with open("apps/frontend/.env", "w") as f:
+              f.write("\n".join(lines) + ("\n" if lines else ""))
+          PY
+
+          echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+          docker build -t "${IMAGE_TAG}" -f apps/frontend/Dockerfile --target runtime .
+          docker push "${IMAGE_TAG}"
+
+  frontend-deploy:
+    needs: [changes, env-config, frontend-build-and-push]
+    if: needs.changes.outputs.frontend-deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan "${REMOTE_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy frontend to VPS
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE }}
+          REMOTE_USER: ${{ vars.REMOTE_USER }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          FRONTEND_ENV_CONTENT: ${{ needs.env-config.outputs.node_env == 'staging' && secrets.FRONTEND_ENV_STAGING || secrets.FRONTEND_ENV_DEV }}
+          IMAGE_SUFFIX: ${{ needs.env-config.outputs.node_env }}
+        run: |
+          IMAGE_TAG="${DOCKERHUB_NAMESPACE}/starter-front-${IMAGE_SUFFIX}:${GITHUB_SHA::8}"
+
+          # Runtime keys go to a local file (pure Python I/O, never shell
+          # text) so a secret containing `$`/backtick/`$2b$10$...` can't be
+          # reinterpreted while building the unquoted ssh heredoc below.
+          eval "$(python3 - <<'PY'
+          import os, re, shlex
+          env_file = os.environ.get("FRONTEND_ENV_CONTENT", "")
+          INFRA_KEYS = {"NETWORK_NAME", "PORT", "CONTAINER_NAME"}
+          KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+          infra = {}
+          lines = []
+          for raw in env_file.splitlines():
+              line = raw.strip()
+              if not line or line.startswith("#"):
+                  continue
+              key, sep, value = line.partition("=")
+              key = key.strip()
+              value = value.strip()
+              if not sep or not KEY_RE.match(key):
+                  continue
+              if key in INFRA_KEYS:
+                  infra[key] = value
+                  continue
+              lines.append(f"{key}={value}")
+
+          with open("/tmp/frontend-runtime.env", "w") as f:
+              f.write("\n".join(lines) + ("\n" if lines else ""))
+
+          for key in INFRA_KEYS:
+              print(f"{key}={shlex.quote(infra.get(key, ''))}")
+          PY
+          )"
+
+          echo "Resolved: CONTAINER_NAME=${CONTAINER_NAME} NETWORK_NAME=${NETWORK_NAME} PORT=${PORT} IMAGE_TAG=${IMAGE_TAG}"
+          echo "Runtime env file: $(wc -l < /tmp/frontend-runtime.env) lines"
+
+          scp /tmp/frontend-runtime.env "${REMOTE_USER}@${REMOTE_HOST}:/tmp/frontend-runtime.env"
+
+          ssh "${REMOTE_USER}@${REMOTE_HOST}" <<EOF
+            set -e
+            sudo docker login -u "${DOCKERHUB_USERNAME}" --password-stdin <<< "${DOCKERHUB_PASSWORD}"
+            echo "Logged in to Docker Hub"
+            sudo docker pull ${IMAGE_TAG}
+            echo "Stopping and removing existing container..."
+            sudo docker stop ${CONTAINER_NAME} || true
+            sudo docker rm ${CONTAINER_NAME} || true
+            echo "Running new container..."
+            sudo docker run --network ${NETWORK_NAME} --network-alias ${CONTAINER_NAME} \
+              -d --name ${CONTAINER_NAME} -p ${PORT}:3000 --restart always --env-file /tmp/frontend-runtime.env ${IMAGE_TAG}
+            rm -f /tmp/frontend-runtime.env
+            echo "Removing old frontend images..."
+            sudo docker images "${DOCKERHUB_NAMESPACE}/starter-front-${IMAGE_SUFFIX}" --format "{{.Repository}}:{{.Tag}}" \
+              | grep -v "${GITHUB_SHA::8}" | xargs -r sudo docker rmi --force || true
+            echo "═══════════════════════════════════════════════════════"
+            echo "Frontend deployment completed!"
+            echo "═══════════════════════════════════════════════════════"
+          EOF
+          rm -f /tmp/frontend-runtime.env
+
+  # ─── Admin ────────────────────────────────────────────────────────
+  admin-build-and-push:
+    needs: [changes, env-config]
+    if: needs.changes.outputs.admin-build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and push admin image
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE }}
+          IMAGE_SUFFIX: ${{ needs.env-config.outputs.node_env }}
+          ADMIN_ENV_CONTENT: ${{ needs.env-config.outputs.node_env == 'staging' && secrets.ADMIN_ENV_STAGING || secrets.ADMIN_ENV_DEV }}
+        run: |
+          IMAGE_TAG="${DOCKERHUB_NAMESPACE}/starter-admin-${IMAGE_SUFFIX}:${GITHUB_SHA::8}"
+
+          # Write only the app's own runtime vars into the build-time .env —
+          # deploy-infra keys (NETWORK_NAME/PORT/CONTAINER_NAME) don't belong
+          # in the Next.js build.
+          python3 - <<'PY'
+          import os, re
+          env_file = os.environ.get("ADMIN_ENV_CONTENT", "")
+          INFRA_KEYS = {"NETWORK_NAME", "PORT", "CONTAINER_NAME"}
+          KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+          lines = []
+          for raw in env_file.splitlines():
+              line = raw.strip()
+              if not line or line.startswith("#"):
+                  continue
+              key, sep, value = line.partition("=")
+              key = key.strip()
+              if not sep or not KEY_RE.match(key) or key in INFRA_KEYS:
+                  continue
+              lines.append(f"{key}={value.strip()}")
+          with open("apps/admin/.env", "w") as f:
+              f.write("\n".join(lines) + ("\n" if lines else ""))
+          PY
+
+          echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+          docker build -t "${IMAGE_TAG}" -f apps/admin/Dockerfile --target runtime .
+          docker push "${IMAGE_TAG}"
+
+  admin-deploy:
+    needs: [changes, env-config, admin-build-and-push]
+    if: needs.changes.outputs.admin-deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan "${REMOTE_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy admin to VPS
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE }}
+          REMOTE_USER: ${{ vars.REMOTE_USER }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          ADMIN_ENV_CONTENT: ${{ needs.env-config.outputs.node_env == 'staging' && secrets.ADMIN_ENV_STAGING || secrets.ADMIN_ENV_DEV }}
+          IMAGE_SUFFIX: ${{ needs.env-config.outputs.node_env }}
+        run: |
+          IMAGE_TAG="${DOCKERHUB_NAMESPACE}/starter-admin-${IMAGE_SUFFIX}:${GITHUB_SHA::8}"
+
+          # Runtime keys go to a local file (pure Python I/O, never shell
+          # text) so a secret containing `$`/backtick/`$2b$10$...` can't be
+          # reinterpreted while building the unquoted ssh heredoc below.
+          eval "$(python3 - <<'PY'
+          import os, re, shlex
+          env_file = os.environ.get("ADMIN_ENV_CONTENT", "")
+          INFRA_KEYS = {"NETWORK_NAME", "PORT", "CONTAINER_NAME"}
+          KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+          infra = {}
+          lines = []
+          for raw in env_file.splitlines():
+              line = raw.strip()
+              if not line or line.startswith("#"):
+                  continue
+              key, sep, value = line.partition("=")
+              key = key.strip()
+              value = value.strip()
+              if not sep or not KEY_RE.match(key):
+                  continue
+              if key in INFRA_KEYS:
+                  infra[key] = value
+                  continue
+              lines.append(f"{key}={value}")
+
+          with open("/tmp/admin-runtime.env", "w") as f:
+              f.write("\n".join(lines) + ("\n" if lines else ""))
+
+          for key in INFRA_KEYS:
+              print(f"{key}={shlex.quote(infra.get(key, ''))}")
+          PY
+          )"
+
+          echo "Resolved: CONTAINER_NAME=${CONTAINER_NAME} NETWORK_NAME=${NETWORK_NAME} PORT=${PORT} IMAGE_TAG=${IMAGE_TAG}"
+          echo "Runtime env file: $(wc -l < /tmp/admin-runtime.env) lines"
+
+          scp /tmp/admin-runtime.env "${REMOTE_USER}@${REMOTE_HOST}:/tmp/admin-runtime.env"
+
+          ssh "${REMOTE_USER}@${REMOTE_HOST}" <<EOF
+            set -e
+            sudo docker login -u "${DOCKERHUB_USERNAME}" --password-stdin <<< "${DOCKERHUB_PASSWORD}"
+            echo "Logged in to Docker Hub"
+            sudo docker pull ${IMAGE_TAG}
+            echo "Stopping and removing existing container..."
+            sudo docker stop ${CONTAINER_NAME} || true
+            sudo docker rm ${CONTAINER_NAME} || true
+            echo "Running new container..."
+            sudo docker run --network ${NETWORK_NAME} --network-alias ${CONTAINER_NAME} \
+              -d --name ${CONTAINER_NAME} -p ${PORT}:3000 --restart always --env-file /tmp/admin-runtime.env ${IMAGE_TAG}
+            rm -f /tmp/admin-runtime.env
+            echo "Removing old admin images..."
+            sudo docker images "${DOCKERHUB_NAMESPACE}/starter-admin-${IMAGE_SUFFIX}" --format "{{.Repository}}:{{.Tag}}" \
+              | grep -v "${GITHUB_SHA::8}" | xargs -r sudo docker rmi --force || true
+            echo "═══════════════════════════════════════════════════════"
+            echo "Admin deployment completed!"
+            echo "═══════════════════════════════════════════════════════"
+          EOF
+          rm -f /tmp/admin-runtime.env

@@ -1,0 +1,118 @@
+---
+# Starter Monitoring Stack
+# Prerequisites: run ./setup.sh once before first `docker compose up`
+#
+# Start:   docker compose up -d
+# Stop:    docker compose down
+# Logs:    docker compose logs -f <service>
+# Upgrade: update versions below, then docker compose pull && docker compose up -d
+
+services:
+  # ------------------------------------------------------------
+  # Metrics
+  # ------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.54.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --storage.tsdb.retention.size=5GB
+      - --storage.tsdb.wal-compression
+      - --web.enable-lifecycle
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - monitoring-stack-network
+    restart: unless-stopped
+
+  # ------------------------------------------------------------
+  # Dashboards
+  # ------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: grafana
+    # Port 3010 — avoids collision with the app ports (3001-3004)
+    # For production access via Nginx: proxy monitoring.example.com → grafana:3000
+    ports:
+      - "3010:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=${GF_DOMAIN:-monitoring.example.com}
+      - GF_SERVER_ROOT_URL=https://${GF_DOMAIN:-monitoring.example.com}
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring-stack-network
+    restart: unless-stopped
+
+  # ------------------------------------------------------------
+  # Logs
+  # ------------------------------------------------------------
+  loki:
+    image: grafana/loki:3.2.0
+    container_name: loki
+    ports:
+      - "127.0.0.1:3100:3100"   # bind to localhost only — not public
+    volumes:
+      - ./config/loki.yml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/config.yaml
+    networks:
+      - monitoring-stack-network
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:3.2.0
+    container_name: promtail
+    volumes:
+      - ./config/promtail.yml:/etc/promtail/config.yaml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yaml
+    networks:
+      - monitoring-stack-network
+    restart: unless-stopped
+
+  # ------------------------------------------------------------
+  # Traces
+  # ------------------------------------------------------------
+  tempo:
+    image: grafana/tempo:2.6.0
+    container_name: tempo
+    ports:
+      - "127.0.0.1:3200:3200"   # HTTP UI & API — localhost only
+      - "4317:4317"             # OTLP gRPC receiver (app → tempo)
+      - "4318:4318"             # OTLP HTTP receiver (app → tempo)
+    volumes:
+      - ./config/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    networks:
+      - monitoring-stack-network
+    restart: unless-stopped
+
+networks:
+  monitoring-stack-network:
+    external: true   # created by setup.sh
+
+volumes:
+  grafana-data:
+    external: true
+    name: monit-grafana-data
+  prometheus-data:
+    external: true
+    name: monit-prometheus-data
+  loki-data:
+    external: true
+    name: monit-loki-data
+  tempo-data:
+    external: true
+    name: monit-tempo-data

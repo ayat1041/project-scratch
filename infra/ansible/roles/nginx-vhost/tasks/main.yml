@@ -1,0 +1,55 @@
+---
+- name: Install certbot and nginx plugin
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: true
+
+- name: Deploy temp HTTP-only vhost (ACME challenge path)
+  ansible.builtin.template:
+    src: vhost-temp.conf.j2
+    dest: "{{ nginx_sites_available }}/{{ nginx.domain_name }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+- name: Enable temp vhost
+  ansible.builtin.file:
+    src: "{{ nginx_sites_available }}/{{ nginx.domain_name }}"
+    dest: "{{ nginx_sites_enabled }}/{{ nginx.domain_name }}"
+    state: link
+  notify: reload nginx
+
+- name: Force nginx reload before certbot
+  ansible.builtin.meta: flush_handlers
+
+- name: Obtain SSL certificate with certbot
+  ansible.builtin.command: >
+    certbot --nginx
+    -d {{ nginx.domain_name }}
+    -d {{ nginx.www_domain_name }}
+    --non-interactive
+    --agree-tos
+    --email {{ nginx.certbot_email }}
+  args:
+    creates: "/etc/letsencrypt/live/{{ nginx.domain_name }}/fullchain.pem"
+  when: vhost_mode == 'ssl'
+
+- name: Deploy final HTTPS vhost
+  ansible.builtin.template:
+    src: vhost.conf.j2
+    dest: "{{ nginx_sites_available }}/{{ nginx.domain_name }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+  when: vhost_mode == 'ssl'
+
+- name: Validate nginx configuration
+  ansible.builtin.command: nginx -t
+  register: nginx_test
+  changed_when: false
+  failed_when: nginx_test.rc != 0

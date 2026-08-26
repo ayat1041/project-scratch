@@ -1,0 +1,35 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Assert redis conf directory exists
+      ansible.builtin.stat:
+        path: /opt/redis/configs
+      register: redis_conf_dir
+
+    - name: Assert redis conf dir is present
+      ansible.builtin.assert:
+        that: redis_conf_dir.stat.exists and redis_conf_dir.stat.isdir
+        fail_msg: "Redis config directory was not created"
+
+    - name: Assert redis.conf is deployed
+      ansible.builtin.stat:
+        path: /opt/redis/configs/redis-test.conf
+      register: redis_conf
+
+    - name: Assert redis.conf exists
+      ansible.builtin.assert:
+        that: redis_conf.stat.exists
+        fail_msg: "redis.conf was not deployed"
+
+    - name: Check redis container is running
+      ansible.builtin.command: docker ps --filter name=test-redis --format "{{ '{{' }}.Names{{ '}}' }}"
+      changed_when: false
+      register: container_check
+
+    - name: Assert redis container is running
+      ansible.builtin.assert:
+        that: "'test-redis' in container_check.stdout"
+        fail_msg: "Redis container is not running"

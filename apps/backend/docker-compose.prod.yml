@@ -1,0 +1,85 @@
+version: "3.9"
+
+services:
+  # --- Redis ---
+  starter-redis:
+    image: redis:7
+    container_name: starter-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - starter-redis-data:/data
+    networks:
+      - starter-app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  # --- Postgres Database ---
+  starter-postgres:
+    image: postgres:15
+    container_name: starter-database
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - starter-pg-data:/var/lib/postgresql/data
+    networks:
+      - starter-app-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready",
+          "-U",
+          "${POSTGRES_USER}",
+          "-d",
+          "${POSTGRES_DB}",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # --- Production App ---
+  starter-app:
+    build:
+      context: ../../
+      dockerfile: apps/backend/Dockerfile
+      target: runtime
+    container_name: starter-app
+    restart: always
+    ports:
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env
+    depends_on:
+      starter-postgres:
+        condition: service_healthy
+      starter-redis:
+        condition: service_healthy
+    networks:
+      - starter-app-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${PORT}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  starter-pg-data:
+    driver: local
+  starter-redis-data:
+    driver: local
+
+networks:
+  starter-app-network:
+    driver: bridge

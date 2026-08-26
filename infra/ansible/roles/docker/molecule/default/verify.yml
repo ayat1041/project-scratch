@@ -1,0 +1,44 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Check docker packages are installed
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert docker-ce is installed
+      ansible.builtin.assert:
+        that: "'docker-ce' in ansible_facts.packages"
+        fail_msg: "docker-ce is not installed"
+
+    - name: Check Docker daemon is running
+      ansible.builtin.systemd:
+        name: docker
+      register: docker_service
+
+    - name: Assert Docker is active
+      ansible.builtin.assert:
+        that: docker_service.status.ActiveState == 'active'
+        fail_msg: "Docker service is not running"
+
+    - name: Assert Docker daemon config exists
+      ansible.builtin.stat:
+        path: /etc/docker/daemon.json
+      register: daemon_json
+
+    - name: Assert daemon.json is present
+      ansible.builtin.assert:
+        that: daemon_json.stat.exists
+        fail_msg: "/etc/docker/daemon.json is missing"
+
+    - name: Assert log rotation config exists
+      ansible.builtin.stat:
+        path: /etc/logrotate.d/docker-logs
+      register: logrotate_conf
+
+    - name: Assert logrotate config is present
+      ansible.builtin.assert:
+        that: logrotate_conf.stat.exists
+        fail_msg: "/etc/logrotate.d/docker-logs is missing"

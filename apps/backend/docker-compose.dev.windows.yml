@@ -1,0 +1,192 @@
+services:
+  redis:
+    image: redis:7.2.4
+    container_name: starter-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./src/config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    environment:
+      - REDIS_PASSWORD=starterRedis123
+    networks:
+      - starter-app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "starterRedis123", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: starter-mailhog-dev
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - starter-app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8025"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:15
+    container_name: starter-database-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - starter-pg-data:/var/lib/postgresql/data
+    networks:
+      - starter-app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  app-dev:
+    build:
+      context: ../../
+      dockerfile: apps/backend/Dockerfile
+      target: dev
+    container_name: starter-app-dev
+    user: root
+    ports:
+      - "8000:8000"
+    restart: on-failure:3
+    env_file:
+      - .env
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=4096
+    volumes:
+      - ../../apps/backend/src:/app/apps/backend/src
+      - ../../packages:/app/packages
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - starter-app-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # prometheus:
+  #   image: prom/prometheus
+  #   container_name: prometheus
+  #   ports:
+  #     - 9090:9090
+  #   volumes:
+  #     - ./prometheus-config.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus-storage:/prometheus
+  #   networks:
+  #     - starter-app-network
+
+  # node-exporter:
+  #   image: prom/node-exporter
+  #   container_name: node-exporter
+  #   ports:
+  #     - "9100:9100"
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   networks:
+  #     - starter-app-network
+  #   command:
+  #     - "--path.procfs=/host/proc"
+  #     - "--path.sysfs=/host/sys"
+  #     - "--path.rootfs=/rootfs"
+  #   restart: unless-stopped
+
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:latest
+  #   container_name: cadvisor
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:ro
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #   networks:
+  #     - starter-app-network
+  #   restart: unless-stopped
+
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   ports:
+  #     - 3001:3000
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #     - GF_USERS_ALLOW_SIGN_UP=false
+  #   volumes:
+  #     - grafana-storage:/var/lib/grafana
+  #   networks:
+  #     - starter-app-network
+
+  # loki:
+  #   image: grafana/loki:latest
+  #   container_name: loki
+  #   ports:
+  #     - 3100:3100
+  #   volumes:
+  #     - ./loki-config.yml:/etc/loki/local-config.yaml
+  #   command: -config.file=/etc/loki/local-config.yaml
+  #   networks:
+  #     - starter-app-network
+
+  # tempo:
+  #   container_name: tempo
+  #   image: grafana/tempo:latest
+  #   ports:
+  #     - "3200:3200" # HTTP UI & API
+  #     - "4317:4317" # OTLP gRPC receiver (changed from 4317 to avoid conflict)
+  #     - "4318:4318" # OTLP HTTP receiver (changed from 4318 to avoid conflict)
+  #   volumes:
+  #     - ./tempo-config.yaml:/etc/tempo.yaml
+  #   command: ["-config.file=/etc/tempo.yaml"]
+  #   networks:
+  #     - starter-app-network
+
+  # postgres-exporter:
+  #   container_name: postgres-exporter
+  #   image: quay.io/prometheuscommunity/postgres-exporter:v0.15.0
+  #   environment:
+  #     DATA_SOURCE_NAME: "postgresql://starteruser:StarterDB123@postgres:5432/starterdb?sslmode=disable"
+  #   ports:
+  #     - "9187:9187"
+  #   networks:
+  #     - starter-app-network
+  #   restart: unless-stopped
+
+volumes:
+  redis-data:
+    driver: local
+  starter-pg-data:
+    driver: local
+  # grafana-storage:
+  # prometheus-storage:
+
+networks:
+  starter-app-network:
+    driver: bridge
+    # external:
+    name: starter-app-network

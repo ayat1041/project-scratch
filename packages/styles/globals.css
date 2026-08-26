@@ -1,0 +1,271 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Ensure Tailwind scans the shared UI component library for utility classes */
+@source "../ui/src";
+
+@layer base {
+  :root {
+    --background: 240 5% 97%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --surface: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 172 66% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 14% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 45 93% 47%;
+    --warning-foreground: 26 83% 14%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+
+    --info: 210 90% 46%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 172 66% 40%;
+
+    --radius: 0.75rem;
+
+    /* Custom Design Tokens */
+    --gradient-radial: radial-gradient(
+      ellipse at top,
+      hsl(220 14% 98%) 0%,
+      hsl(0 0% 100%) 100%
+    );
+    --gradient-subtle: linear-gradient(
+      180deg,
+      hsl(220 14% 98%) 0%,
+      hsl(0 0% 100%) 100%
+    );
+    --glow-primary: 0 0 40px hsl(172 66% 40% / 0.15);
+    --glow-card: 0 25px 50px -12px hsl(0 0% 0% / 0.1);
+
+    --sidebar-background: 220 14% 93%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 172 66% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 89%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 87%;
+    --sidebar-ring: 172 66% 40%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 172 66% 50%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --warning: 45 93% 47%;
+    --warning-foreground: 26 83% 14%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 20%;
+    --ring: 172 66% 50%;
+
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 172 66% 50%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 172 66% 50%;
+  }
+}
+
+@theme {
+  /* Convert HSL to OKLCH for Tailwind v4 compatibility */
+  --color-primary: oklch(from hsl(var(--primary)) l c h);
+  --color-primary-foreground: oklch(from hsl(var(--primary-foreground)) l c h);
+  --color-secondary: oklch(from hsl(var(--secondary)) l c h);
+  --color-secondary-foreground: oklch(from hsl(var(--secondary-foreground)) l c h);
+  --color-destructive: oklch(from hsl(var(--destructive)) l c h);
+  --color-destructive-foreground: oklch(from hsl(var(--destructive-foreground)) l c h);
+  --color-muted: oklch(from hsl(var(--muted)) l c h);
+  --color-muted-foreground: oklch(from hsl(var(--muted-foreground)) l c h);
+  --color-accent: oklch(from hsl(var(--accent)) l c h);
+  --color-accent-foreground: oklch(from hsl(var(--accent-foreground)) l c h);
+  --color-border: oklch(from hsl(var(--border)) l c h);
+  --color-input: oklch(from hsl(var(--input)) l c h);
+  --color-ring: oklch(from hsl(var(--ring)) l c h);
+  --color-background: oklch(from hsl(var(--background)) l c h);
+  --color-foreground: oklch(from hsl(var(--foreground)) l c h);
+  --color-card: oklch(from hsl(var(--card)) l c h);
+  --color-card-foreground: oklch(from hsl(var(--card-foreground)) l c h);
+  --color-popover: oklch(from hsl(var(--popover)) l c h);
+  --color-popover-foreground: oklch(from hsl(var(--popover-foreground)) l c h);
+  --color-warning: oklch(from hsl(var(--warning)) l c h);
+  --color-warning-foreground: oklch(from hsl(var(--warning-foreground)) l c h);
+  --color-success: oklch(from hsl(var(--success)) l c h);
+  --color-success-foreground: oklch(from hsl(var(--success-foreground)) l c h);
+  --color-info: oklch(from hsl(var(--info)) l c h);
+  --color-info-foreground: oklch(from hsl(var(--info-foreground)) l c h);
+
+  --color-sidebar-background: oklch(from hsl(var(--sidebar-background)) l c h);
+  --color-sidebar-foreground: oklch(from hsl(var(--sidebar-foreground)) l c h);
+  --color-sidebar-primary: oklch(from hsl(var(--sidebar-primary)) l c h);
+  --color-sidebar-primary-foreground: oklch(from hsl(var(--sidebar-primary-foreground)) l c h);
+  --color-sidebar-accent: oklch(from hsl(var(--sidebar-accent)) l c h);
+  --color-sidebar-accent-foreground: oklch(from hsl(var(--sidebar-accent-foreground)) l c h);
+  --color-sidebar-border: oklch(from hsl(var(--sidebar-border)) l c h);
+  --color-sidebar-ring: oklch(from hsl(var(--sidebar-ring)) l c h);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scrollbar-width: thin;
+  }
+
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.3);
+  }
+}
+
+@layer utilities {
+  .gradient-radial {
+    background: var(--gradient-radial);
+  }
+
+  .gradient-subtle {
+    background: var(--gradient-subtle);
+  }
+
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+
+  .glow-card {
+    box-shadow: var(--glow-card);
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out forwards;
+  }
+
+  .animate-glow-pulse {
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+}
+
+/* Keyframe Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px hsl(172 66% 50% / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(172 66% 50% / 0.4);
+  }
+}
+
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}

@@ -1,0 +1,81 @@
+#!/bin/sh
+# Pre-commit hook
+# 1. Runs lint-staged for backend (if any backend files are staged)
+# 2. Spec-drift warn (endpoint↔swagger, enum↔doc, AC↔test) when drift-relevant files change (never blocks)
+# 3. Spec-stale warn (FRD behind its feature code, git-history heuristic) (never blocks)
+# 4. Warns about likely-stale tests and swagger docs (never blocks)
+
+# ── 1. lint-staged for backend ────────────────────────────────────────────────
+if git diff --cached --name-only | grep -q '^apps/backend/'; then
+  (cd apps/backend && npx lint-staged)
+fi
+
+# ── 1.5 Spec-drift warn (never blocks) ────────────────────────────────────────
+# Only runs when staged changes touch routes/swagger/validations/constants/docs —
+# the inputs to endpoint↔swagger and enum↔doc drift. CI is the blocking gate.
+if git diff --cached --name-only \
+   | grep -qE '^(apps/backend/.*(\.routes\.ts|\.swagger\.ts|validation|/docs/)|packages/(validations|constants)/)'; then
+  (cd apps/backend && pnpm -s check:spec-drift -- --warn-only) || true
+fi
+
+# ── 1.6 Spec-stale warn (never blocks) ────────────────────────────────────────
+# Git-history heuristic: warns when an FRD is N+ source-commits behind its feature
+# code. Runs when staged changes touch backend source under apps/backend/src.
+if git diff --cached --name-only | grep -qE '^apps/backend/src/.*\.(ts|tsx)$'; then
+  (cd apps/backend && pnpm -s check:spec-stale) || true
+fi
+
+# ── 2. Stale artifact check ───────────────────────────────────────────────────
+CHANGED=$(git diff --cached --name-only | grep -E 'apps/backend/src/.*\.(service|controller|queries\.model)\.ts$' | grep -v '\.test\.ts$')
+
+if [ -z "$CHANGED" ]; then
+  exit 0
+fi
+
+WARNINGS=""
+
+for FILE in $CHANGED; do
+  # ── Test file check ──────────────────────────────────────────────────────
+  TEST_FILE="${FILE%.ts}.test.ts"
+  if [ -f "$TEST_FILE" ]; then
+    WARNINGS="${WARNINGS}\n  ⚠  $(basename $FILE)\n     → test file may be stale: $TEST_FILE"
+  fi
+
+  # ── Swagger docs check ───────────────────────────────────────────────────
+  # Walk up from the changed file's directory to find a swagger-docs/ folder
+  DIR=$(dirname "$FILE")
+  SWAGGER_DIR=""
+  SEARCH="$DIR"
+  for i in 1 2 3 4; do
+    if [ -d "$SEARCH/swagger-docs" ]; then
+      SWAGGER_DIR="$SEARCH/swagger-docs"
+      break
+    fi
+    SEARCH=$(dirname "$SEARCH")
+  done
+
+  if [ -n "$SWAGGER_DIR" ]; then
+    # Get the action name from the filename (e.g. create-role from create-role.service.ts)
+    BASE=$(basename "$FILE" | sed 's/\.\(service\|controller\|queries\.model\)\.ts$//')
+    # Look for a matching swagger file
+    SWAGGER_MATCH=$(find "$SWAGGER_DIR" -name "${BASE}*.swagger.ts" 2>/dev/null | head -1)
+    if [ -n "$SWAGGER_MATCH" ]; then
+      WARNINGS="${WARNINGS}\n  ⚠  $(basename $FILE)\n     → swagger doc may be stale: $SWAGGER_MATCH"
+    fi
+  fi
+done
+
+if [ -n "$WARNINGS" ]; then
+  echo ""
+  echo "┌─────────────────────────────────────────────────────────────┐"
+  echo "│  STALE ARTIFACT WARNING  (commit not blocked)               │"
+  echo "│                                                              │"
+  echo "│  These files changed. Review their tests/docs if needed:   │"
+  echo "└─────────────────────────────────────────────────────────────┘"
+  printf "$WARNINGS\n"
+  echo ""
+  echo "  Run /review-impact for a detailed analysis."
+  echo ""
+fi
+
+exit 0

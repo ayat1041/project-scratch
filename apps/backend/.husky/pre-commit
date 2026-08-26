@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+
+# 1. Format/lint staged files
+npx lint-staged || exit 1
+
+# 2. Regression guards on staged source files
+STAGED_TS=$(git diff --cached --name-only --diff-filter=ACMR -- 'apps/backend/src/**/*.ts' 'apps/backend/src/**/*.tsx' 2>/dev/null || true)
+
+if [ -n "$STAGED_TS" ]; then
+  # 2a. Forbid reintroducing the deprecated handleError helper
+  if echo "$STAGED_TS" | xargs grep -nE 'handleError\(' 2>/dev/null; then
+    echo "\n[pre-commit] Forbidden: 'handleError(' reintroduced. Use 'createError' + throw via 'asyncHandler' instead." >&2
+    exit 1
+  fi
+
+  # 2b. Forbid manual error-response shaping in controllers/services/middleware
+  if echo "$STAGED_TS" \
+      | grep -E 'apps/backend/src/(modules|middleware|policies)/' \
+      | xargs grep -nE 'res\.status\([0-9]+\)\.json\(\s*\{\s*(error|message)' 2>/dev/null; then
+    echo "\n[pre-commit] Forbidden: manual error-response shaping. Throw via createError; the global error middleware formats responses." >&2
+    exit 1
+  fi
+fi
+
+# 3. Type-check the backend if any backend TS file changed
+if [ -n "$STAGED_TS" ]; then
+  echo "[pre-commit] Running backend type-check..."
+  (cd apps/backend && pnpm exec tsc --noEmit) || exit 1
+fi

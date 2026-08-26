@@ -1,0 +1,147 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - "apps/backend/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/backend-ci.yml"
+  push:
+    branches:
+      - production
+    paths:
+      - "apps/backend/**"
+      - "packages/**"
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-build:
+    name: Lint + Type Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint backend
+        run: pnpm --filter backend lint
+
+      - name: Spec drift check
+        # Detects endpoints without swagger docs and status enums missing from their spec docs.
+        # See apps/backend/docs/instructions/spec-sync.instructions.md. Runs regardless of prior
+        # step outcome so doc drift is reported independently of build/lint failures.
+        if: ${{ !cancelled() }}
+        run: pnpm --filter backend check:spec-drift
+
+      - name: Type build backend
+        run: pnpm --filter backend build
+
+  service-tests:
+    name: Integration Tests (DB + Redis)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # NOTE: This job is intentionally non-blocking until the suite is confirmed green
+    # in real CI. The 81 *.service.test.ts integration tests were never previously run
+    # in CI, so first runs may surface pre-existing failures or external-service env
+    # gaps (e.g. Cloudflare R2 / email). Once a clean run is achieved, REMOVE the
+    # `continue-on-error` line below to make broken tests block merges (full-loop gate).
+    continue-on-error: true
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: starter_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # db.ts and drizzle.config.ts read DATABASE_URL; queue modules read REDIS_*.
+      # Full env validation (validateEnvironment) runs only in server.ts, which the
+      # service tests do not import — so app secrets are not required here.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/starter_test
+      REDIS_HOST: localhost
+      REDIS_PORT: "6379"
+      REDIS_URL: redis://localhost:6379
+      NODE_ENV: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply database migrations
+        run: pnpm --filter backend db:migrate
+
+      - name: Seed reference data
+        # Several integration tests depend on seeded roles/permissions/reference data.
+        run: pnpm --filter backend seed
+
+      - name: Run integration tests
+        run: pnpm --filter backend test:services
+
+  graph-freshness:
+    name: Graphify Freshness (warn-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so the graph's built_at_commit is reachable for the diff.
+          fetch-depth: 0
+
+      - name: Check graphify graph freshness
+        # Warn-only: graph artifacts are committed in separate chore(graphify) commits,
+        # so a code PR legitimately can land before the graph is refreshed. This surfaces
+        # staleness as a GitHub annotation without blocking the merge. The authoritative
+        # guard is the SessionStart hook in .claude/settings.json.
+        run: |
+          if ! bash .claude/hooks/check-graph-freshness.sh ci; then
+            echo "::warning title=Graphify graph stale::Code under apps/ or packages/ changed since graphify-out/graph.json was built. Run 'graphify update .' and commit graphify-out/ to keep agent context accurate."
+          fi

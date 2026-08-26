@@ -1,0 +1,33 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: deploy-redis-ubuntu
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+    cgroupns_mode: host
+    command: /lib/systemd/systemd
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      deploy-redis-ubuntu:
+        admin_user: testadmin
+        redis:
+          image: "redis:7.2.4"
+          container_name: "test-redis"
+          host_port: 6379
+          port: 6379
+          network: "test-network"
+          network_alias: "test-redis"
+          named_volume: "test-redis-data"
+          conf_src: "/opt/redis/configs/redis-test.conf"
+          password: "testredispassword"
+verifier:
+  name: ansible

@@ -1,0 +1,58 @@
+# Authentication
+requirepass {{ redis.password }}
+
+# Persistence
+appendonly yes
+appendfsync everysec
+no-appendfsync-on-rewrite yes
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+aof-load-truncated yes
+
+# Memory Management
+maxmemory 512mb
+maxmemory-policy allkeys-lru
+# LRU accuracy vs speed tradeoff
+maxmemory-samples 10  
+
+# Networking
+bind 0.0.0.0
+port {{ redis.port }}
+protected-mode yes
+tcp-backlog 511
+tcp-keepalive 300
+# Close idle connections
+timeout 300 
+maxclients 10000
+
+# Logging
+loglevel notice
+logfile ""
+
+# Snapshots
+save 900 1
+save 300 10
+save 60 10000
+stop-writes-on-bgsave-error yes
+rdbcompression yes
+rdbchecksum yes
+
+# Security - renamed commands
+rename-command FLUSHALL "984d4a1a9b7f5e3c2d1b"
+rename-command FLUSHDB "e7c3d2b1a9f8e7d6c5b4"
+rename-command SHUTDOWN "SHUTDOWN_CMD_8f7e6d5c"
+rename-command DEBUG "DEBUG_CMD_7e6d5c4b"
+rename-command CONFIG "CONFIG_CMD_6d5c4b3a"
+
+# Performance monitoring
+slowlog-log-slower-than 10000
+slowlog-max-len 128
+latency-monitor-threshold 100
+
+# Other optimizations
+databases 16
+hash-max-ziplist-entries 512
+hash-max-ziplist-value 64
+set-max-intset-entries 512
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64

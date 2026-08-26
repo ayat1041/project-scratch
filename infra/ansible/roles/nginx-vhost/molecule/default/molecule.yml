@@ -1,0 +1,28 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: nginx-vhost-ubuntu
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
+    pre_build_image: true
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    command: /lib/systemd/systemd
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      nginx-vhost-ubuntu:
+        # vhost_mode=temp skips certbot so the test works without a real domain
+        vhost_mode: temp
+        nginx:
+          domain_name: "test.example.com"
+          www_domain_name: "www.test.example.com"
+          app_port: 3000
+          certbot_email: "test@example.com"
+verifier:
+  name: ansible

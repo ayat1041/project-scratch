@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"],
+      "@modules/*": ["./modules/*"],
+      "@features/*": ["./features/*"],
+      "@repo/utilities/http/fetch-with-cookies-server": ["../../packages/utilities/src/http/fetch-with-cookies-server.ts"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.d.ts",
+    ".next/types/**/*.ts",
+    "../../packages/utilities/src/upload-to-r2.ts",
+    "../../packages/utilities/src/fetch-with-cookies-server.ts",
+    "../../packages/utilities/src/fetch-with-cookies.ts"
+  ],
+  "exclude": ["node_modules"]
+}

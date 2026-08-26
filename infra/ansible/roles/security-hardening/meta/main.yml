@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Softeko
+  description: Security hardening with SSH, UFW, and Fail2Ban
+  company: Softeko
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - security
+    - ssh
+    - firewall
+    - fail2ban

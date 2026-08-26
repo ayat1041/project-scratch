@@ -1,0 +1,4437 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Starter API (Combined)",
+    "version": "1.0.0",
+    "description": "Combined OpenAPI spec generated from all backend module Swagger docs."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "API Server"
+    },
+    {
+      "url": "https://devapi.example.com",
+      "description": "Dev API Server"
+    }
+  ],
+  "security": [
+    {
+      "cookieAuth": []
+    },
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization endpoints"
+    },
+    {
+      "name": "Common Resources",
+      "description": "Shared reference data (countries, states, cities, languages) and common utilities"
+    },
+    {
+      "name": "User Management",
+      "description": "User profiles, preferences, and user administration"
+    }
+  ],
+  "paths": {
+    "/api/auth/v1/validate-reset-password-link": {
+      "post": {
+        "x-order": 8,
+        "summary": "Validate reset password link",
+        "description": "Validate reset password token before showing password reset form.\n\n**Use Cases:**\n- Validate token when user clicks reset password link\n- Check if token is expired before showing reset form\n- Verify token-email pair is valid\n\n**Flow:**\n1. User receives password reset email with link containing token and email\n2. Frontend calls this endpoint to validate before showing reset form\n3. If valid, show password reset form\n4. If invalid/expired, show appropriate error message\n",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "email"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "Reset password token from email link",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User email address from reset link"
+                  }
+                }
+              },
+              "examples": {
+                "validToken": {
+                  "summary": "Valid token validation",
+                  "value": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                    "email": "user@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token is valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "isValid": {
+                          "type": "boolean",
+                          "description": "Whether the token is valid"
+                        },
+                        "email": {
+                          "type": "string",
+                          "description": "Validated email address"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "validToken": {
+                    "summary": "Token validation successful",
+                    "description": "Token is valid and not expired",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": true,
+                      "message": "Token is valid",
+                      "data": {
+                        "isValid": true,
+                        "email": "user@example.com"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "expiredToken": {
+                    "summary": "Token expired",
+                    "description": "Reset password token has expired",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Reset link has expired",
+                      "rawErrorMessage": "Reset link has expired",
+                      "details": {
+                        "error": "The password reset link has expired",
+                        "hint": "Please request a new password reset link."
+                      },
+                      "type": "bad_request"
+                    }
+                  },
+                  "invalidToken": {
+                    "summary": "Invalid token format",
+                    "description": "Token format is invalid or corrupted",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Invalid reset link",
+                      "rawErrorMessage": "Invalid reset link",
+                      "details": {
+                        "error": "The reset token is invalid or malformed",
+                        "hint": "Please use the link from your email or request a new one."
+                      },
+                      "type": "bad_request"
+                    }
+                  },
+                  "tokenEmailMismatch": {
+                    "summary": "Token-email mismatch",
+                    "description": "Token does not match provided email",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Token and email mismatch",
+                      "rawErrorMessage": "Token and email mismatch",
+                      "details": {
+                        "error": "The reset token does not match the provided email",
+                        "hint": "Please use the correct link from your email."
+                      },
+                      "type": "bad_request"
+                    }
+                  },
+                  "alreadyUsedToken": {
+                    "summary": "Token already used",
+                    "description": "Reset token has already been used",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Reset link already used",
+                      "rawErrorMessage": "Reset link already used",
+                      "details": {
+                        "error": "This password reset link has already been used",
+                        "hint": "Request a new password reset if needed."
+                      },
+                      "type": "bad_request"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "userNotFound": {
+                    "summary": "User not found",
+                    "description": "No user exists with this email",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "User not found",
+                      "rawErrorMessage": "User not found",
+                      "details": {
+                        "error": "No user found with this email address",
+                        "hint": "Please check the email address."
+                      },
+                      "type": "not_found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "missingToken": {
+                    "summary": "Missing token",
+                    "description": "Token field is required",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Token is required",
+                      "details": {
+                        "error": "Required field validation failed",
+                        "hint": "Please use the complete link from your email",
+                        "validationErrors": [
+                          {
+                            "field": "token",
+                            "message": "Token is required",
+                            "code": "required"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "missingEmail": {
+                    "summary": "Missing email",
+                    "description": "Email field is required",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Email is required",
+                      "details": {
+                        "error": "Required field validation failed",
+                        "hint": "Please provide an email address",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Email is required",
+                            "code": "required"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "invalidEmailFormat": {
+                    "summary": "Invalid email format",
+                    "description": "Email format is not valid",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Invalid email format",
+                      "details": {
+                        "error": "Email format validation failed",
+                        "hint": "Please provide a valid email address",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Invalid email format",
+                            "code": "invalid_format"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "x-requestExample": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ0eXBlIjoicGFzc3dvcmRfcmVzZXQifQ.xxxxx",
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred",
+                      "rawErrorMessage": "Failed to validate token",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/reset-password": {
+      "post": {
+        "x-order": 9,
+        "summary": "Reset user password",
+        "description": "Set new password using token from password reset email",
+        "tags": [
+          "Authentication"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "siteContext",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "main",
+                "admin"
+              ]
+            },
+            "description": "Site context for API testing (optional, for tools like Postman)"
+          },
+          {
+            "in": "header",
+            "name": "X-Site-Context",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "main",
+                "admin"
+              ]
+            },
+            "description": "Site context header for API testing (optional, for tools like Postman)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "token",
+                  "password",
+                  "confirmPassword"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "Reset token from email link"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              },
+              "examples": {
+                "validReset": {
+                  "summary": "Valid reset password request",
+                  "value": {
+                    "email": "user@example.com",
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "password": "NewSecurePass123!",
+                    "confirmPassword": "NewSecurePass123!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset successfully"
+                    },
+                    "_links": {
+                      "type": "object",
+                      "properties": {
+                        "redirectUrl": {
+                          "type": "string",
+                          "example": "/auth/signin"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "passwordReset": {
+                    "summary": "Password reset successful",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                      "password": "NewSecurePass123!",
+                      "confirmPassword": "NewSecurePass123!"
+                    },
+                    "value": {
+                      "success": true,
+                      "message": "Password reset successfully",
+                      "_links": {
+                        "redirectUrl": "/auth/signin"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Token validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "tokenEmailMismatch": {
+                    "summary": "Token and email mismatch",
+                    "description": "The reset token does not match the provided email",
+                    "x-requestExample": {
+                      "email": "different.user@example.com",
+                      "token": "token-for-another-user",
+                      "password": "NewSecurePass123!",
+                      "confirmPassword": "NewSecurePass123!"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Token and email mismatch",
+                      "rawErrorMessage": "Token and email mismatch",
+                      "details": {
+                        "error": "The verification token does not match the provided email",
+                        "hint": "Please use the correct verification link from your email."
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Site context validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "wrongPortal": {
+                    "summary": "Wrong portal access",
+                    "description": "User trying to reset password through incorrect portal",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "token": "valid-token",
+                      "password": "NewSecurePass123!",
+                      "confirmPassword": "NewSecurePass123!"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Access denied",
+                      "rawErrorMessage": "Access denied",
+                      "details": {
+                        "error": "Portal access validation failed",
+                        "hint": "Please use the correct portal for your account type."
+                      },
+                      "type": "forbidden"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "userNotFound": {
+                    "summary": "User not found",
+                    "description": "No user found with the provided email address",
+                    "x-requestExample": {
+                      "email": "unknown.user@example.com",
+                      "token": "some-token",
+                      "password": "NewSecurePass123!",
+                      "confirmPassword": "NewSecurePass123!"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Email is not found in our system.",
+                      "rawErrorMessage": "Email is not found in our system.",
+                      "details": {
+                        "error": "No user found with the provided email address",
+                        "hint": "Please register first or check the email address."
+                      },
+                      "type": "not_found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (invalid request format)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "passwordMismatch": {
+                    "summary": "Password confirmation mismatch",
+                    "description": "Password and confirm password do not match",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "token": "valid-token",
+                      "password": "NewSecurePass123!",
+                      "confirmPassword": "MismatchPass123!"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Passwords do not match",
+                      "details": {
+                        "error": "Password confirmation failed",
+                        "hint": "Please ensure both password fields match",
+                        "validationErrors": [
+                          {
+                            "field": "confirmPassword",
+                            "message": "Passwords do not match",
+                            "code": "password_mismatch"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "weakPassword": {
+                    "summary": "Password too weak",
+                    "description": "Password does not meet minimum security requirements",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "token": "valid-token",
+                      "password": "short",
+                      "confirmPassword": "short"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Password too weak",
+                      "details": {
+                        "error": "Password security requirements not met",
+                        "hint": "Password must be at least 8 characters long",
+                        "validationErrors": [
+                          {
+                            "field": "password",
+                            "message": "Password must be at least 8 characters",
+                            "code": "min_length"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "description": "An unexpected error occurred on the server",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "token": "valid-token",
+                      "password": "NewSecurePass123!",
+                      "confirmPassword": "NewSecurePass123!"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred.",
+                      "rawErrorMessage": "Database connection failed.",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later or contact support if the problem persists."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/forgot-password": {
+      "post": {
+        "x-order": 7,
+        "summary": "Request password reset",
+        "description": "Send password reset link to user email",
+        "tags": [
+          "Authentication"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "siteContext",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "main",
+                "admin"
+              ]
+            },
+            "description": "Site context for API testing (optional, for tools like Postman)"
+          },
+          {
+            "in": "header",
+            "name": "X-Site-Context",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "main",
+                "admin"
+              ]
+            },
+            "description": "Site context header for API testing (optional, for tools like Postman)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generic reset request response. The response is the same whether the account exists, is unverified, or is missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "_links": {
+                      "type": "object",
+                      "properties": {
+                        "redirectUrl": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "genericResponse": {
+                    "summary": "Reset request accepted",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": true,
+                      "message": "If an account exists for that email, a password reset link will be sent.",
+                      "_links": {
+                        "redirectUrl": "/auth/forgot-password"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (invalid request format)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "missingEmail": {
+                    "summary": "Missing email field",
+                    "description": "Email field is required but not provided",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Email is required",
+                      "details": {
+                        "error": "Required field validation failed",
+                        "hint": "Please provide an email address",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Email is required",
+                            "code": "required"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "invalidEmailFormat": {
+                    "summary": "Invalid email format",
+                    "description": "Email format is not valid",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Invalid email format",
+                      "details": {
+                        "error": "Email format validation failed",
+                        "hint": "Please provide a valid email address",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Invalid email format",
+                            "code": "invalid_format"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "description": "An unexpected error occurred on the server",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred.",
+                      "rawErrorMessage": "Database connection failed.",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later or contact support if the problem persists."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/sign-out": {
+      "post": {
+        "x-order": 6,
+        "summary": "Sign out user",
+        "description": "End user session and clear authentication cookies.\n\n**Features:**\n- Single device sign out (default)\n- All devices sign out using `allDevices=true` query parameter\n- Clears session token cookies\n",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "allDevices",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Sign out from all devices (invalidates all active sessions)",
+            "example": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sign out successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "_links": {
+                      "type": "object",
+                      "properties": {
+                        "redirectUrl": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "singleDeviceSignOut": {
+                    "summary": "Single device sign out",
+                    "description": "User signed out from current device only",
+                    "value": {
+                      "success": true,
+                      "message": "signed out successfully",
+                      "_links": {
+                        "redirectUrl": "/"
+                      }
+                    }
+                  },
+                  "allDevicesSignOut": {
+                    "summary": "All devices sign out",
+                    "description": "User signed out from all devices",
+                    "value": {
+                      "success": true,
+                      "message": "signed out from all devices successfully",
+                      "_links": {
+                        "redirectUrl": "/"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Already logged out or invalid session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "alreadyLoggedOut": {
+                    "summary": "Already logged out",
+                    "description": "User is not currently logged in",
+                    "value": {
+                      "success": false,
+                      "message": "No active session found",
+                      "rawErrorMessage": "No active session found",
+                      "details": {
+                        "error": "User is not logged in",
+                        "hint": "You are already signed out."
+                      },
+                      "type": "bad_request"
+                    }
+                  },
+                  "invalidSession": {
+                    "summary": "Invalid session",
+                    "description": "Session token is invalid or corrupted",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid session",
+                      "rawErrorMessage": "Invalid session",
+                      "details": {
+                        "error": "Session validation failed",
+                        "hint": "Please sign in again."
+                      },
+                      "type": "bad_request"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - No valid session token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "noSessionToken": {
+                    "summary": "No session token",
+                    "description": "No session token provided in cookies",
+                    "value": {
+                      "success": false,
+                      "message": "Authentication required",
+                      "rawErrorMessage": "Authentication required",
+                      "details": {
+                        "error": "No authentication token found",
+                        "hint": "Please sign in first."
+                      },
+                      "type": "unauthorized"
+                    }
+                  },
+                  "expiredSession": {
+                    "summary": "Expired session",
+                    "description": "Session has expired",
+                    "value": {
+                      "success": false,
+                      "message": "Session expired",
+                      "rawErrorMessage": "Session expired",
+                      "details": {
+                        "error": "Your session has expired",
+                        "hint": "Please sign in again to continue."
+                      },
+                      "type": "unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred",
+                      "rawErrorMessage": "Failed to invalidate session",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/sign-in": {
+      "post": {
+        "x-order": 4,
+        "summary": "Sign in user",
+        "description": "Authenticate user with email and password",
+        "tags": [
+          "Authentication"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "siteContext",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "main",
+                "admin"
+              ]
+            },
+            "description": "Site context for API testing (optional, for tools like Postman)"
+          },
+          {
+            "in": "header",
+            "name": "X-Site-Context",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "main",
+                "admin"
+              ]
+            },
+            "description": "Site context header for API testing (optional, for tools like Postman)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sign in successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Signin successful"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userInfo": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "userName": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "roles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "permissions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "allowedRoutes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "_links": {
+                      "type": "object",
+                      "properties": {
+                        "redirectUrl": {
+                          "type": "string",
+                          "example": "/dashboard"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "signedIn": {
+                    "summary": "Sign in successful",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "password": "password123"
+                    },
+                    "value": {
+                      "success": true,
+                      "message": "Signin successful",
+                      "data": {
+                        "userInfo": {
+                          "id": "550e8400-e29b-41d4-a716-446655440000",
+                          "email": "user@example.com",
+                          "userName": "john-doe"
+                        },
+                        "roles": [
+                          "user"
+                        ],
+                        "permissions": [
+                          "user:read_own_profile",
+                          "user:update_own_profile"
+                        ],
+                        "allowedRoutes": [
+                          "/dashboard",
+                          "/profile",
+                          "/settings"
+                        ]
+                      },
+                      "_links": {
+                        "redirectUrl": "/dashboard"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Generic authentication error for missing users, unverified users, and invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "invalidCredentials": {
+                    "summary": "Invalid sign-in",
+                    "description": "Same response for missing users, unverified users, and wrong passwords",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "password": "password123"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Email or password is incorrect.",
+                      "rawErrorMessage": "Email or password is incorrect.",
+                      "type": "bad_request"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Site context validation errors (wrong portal access)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "adminWrongPortal": {
+                    "summary": "Admin in wrong portal",
+                    "description": "Admin user trying to sign in through main portal instead of admin panel",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "password": "password123"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Admin users must sign in through the admin panel",
+                      "rawErrorMessage": "Admin users must sign in through the admin panel",
+                      "details": {
+                        "error": "Access denied: Admin portal required",
+                        "hint": "Please use the admin dashboard URL to sign in."
+                      },
+                      "type": "forbidden"
+                    }
+                  },
+                  "regularUserInAdmin": {
+                    "summary": "Regular user in admin portal",
+                    "description": "Regular user trying to sign in through admin panel",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "password": "password123"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Only admin users can sign in through the admin panel",
+                      "rawErrorMessage": "Only admin users can sign in through the admin panel",
+                      "details": {
+                        "error": "Access denied: Admin permissions required",
+                        "hint": "Please use the main application URL to sign in."
+                      },
+                      "type": "forbidden"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (invalid request data)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "missingFields": {
+                    "summary": "Missing required fields",
+                    "description": "Email or password field is missing",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "password": "password123"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Required fields are missing",
+                      "details": {
+                        "error": "Required field validation failed",
+                        "hint": "Please provide both email and password",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Email is required",
+                            "code": "required"
+                          },
+                          {
+                            "field": "password",
+                            "message": "Password is required",
+                            "code": "required"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "invalidEmailFormat": {
+                    "summary": "Invalid email format",
+                    "description": "Email format is not valid",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "password": "password123"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Invalid email format",
+                      "details": {
+                        "error": "Email format validation failed",
+                        "hint": "Please provide a valid email address",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Invalid email format",
+                            "code": "invalid_format"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "passwordTooShort": {
+                    "summary": "Password requirements not met",
+                    "description": "Password does not meet minimum requirements",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "password": "password123"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Password does not meet requirements",
+                      "details": {
+                        "error": "Password validation failed",
+                        "hint": "Password must meet the minimum requirements",
+                        "validationErrors": [
+                          {
+                            "field": "password",
+                            "message": "Password must be at least 8 characters",
+                            "code": "min_length"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "description": "An unexpected error occurred on the server",
+                    "x-requestExample": {
+                      "email": "user@example.com",
+                      "password": "password123"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred.",
+                      "rawErrorMessage": "Database connection failed.",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later or contact support if the problem persists."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/session-info": {
+      "get": {
+        "x-order": 5,
+        "summary": "Get current session information",
+        "description": "Retrieve authenticated user's session details and allowed routes.\n\n**Use Cases:**\n- Verify if user is still authenticated\n- Get user's current roles and permissions\n- Fetch allowed routes for frontend navigation\n- Get detailed user information with `includeDetails=true`\n",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "includeDetails",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include detailed user information (profile image, etc.)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session info retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userInfo": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "email": {
+                              "type": "string",
+                              "format": "email"
+                            },
+                            "userName": {
+                              "type": "string"
+                            },
+                            "profileImage": {
+                              "type": "string",
+                              "format": "uri"
+                            }
+                          }
+                        },
+                        "roles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "permissions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "allowedRoutes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "regularUser": {
+                    "summary": "Regular user session",
+                    "description": "Session info for a self-registered user",
+                    "value": {
+                      "success": true,
+                      "message": "Session info retrieved successfully",
+                      "data": {
+                        "userInfo": {
+                          "id": "550e8400-e29b-41d4-a716-446655440000",
+                          "email": "user@example.com",
+                          "userName": "john-doe",
+                          "profileImage": "https://storage.example.com/profiles/john.jpg"
+                        },
+                        "roles": [
+                          "user"
+                        ],
+                        "permissions": [
+                          "user:read_own_profile",
+                          "user:update_own_profile"
+                        ],
+                        "allowedRoutes": [
+                          "/dashboard",
+                          "/profile",
+                          "/settings"
+                        ]
+                      }
+                    }
+                  },
+                  "adminUser": {
+                    "summary": "Admin user session",
+                    "description": "Session info for an admin user",
+                    "value": {
+                      "success": true,
+                      "message": "Session info retrieved successfully",
+                      "data": {
+                        "userInfo": {
+                          "id": "770e8400-e29b-41d4-a716-446655440002",
+                          "email": "admin@example.com",
+                          "userName": "admin-user"
+                        },
+                        "roles": [
+                          "admin",
+                          "super_admin"
+                        ],
+                        "permissions": [
+                          "admin:administration_access",
+                          "admin:read_user"
+                        ],
+                        "allowedRoutes": [
+                          "/dashboard",
+                          "/dashboard/users",
+                          "/dashboard/roles-and-permissions",
+                          "/dashboard/settings"
+                        ]
+                      }
+                    }
+                  },
+                  "basicInfo": {
+                    "summary": "Basic session info (without details)",
+                    "description": "Minimal session info when includeDetails is false",
+                    "value": {
+                      "success": true,
+                      "message": "Session info retrieved successfully",
+                      "data": {
+                        "userInfo": {
+                          "id": "550e8400-e29b-41d4-a716-446655440000",
+                          "email": "user@example.com"
+                        },
+                        "roles": [
+                          "user"
+                        ],
+                        "allowedRoutes": [
+                          "/dashboard",
+                          "/profile"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - No valid session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "noSession": {
+                    "summary": "No active session",
+                    "description": "User is not authenticated",
+                    "value": {
+                      "success": false,
+                      "message": "Authentication required",
+                      "rawErrorMessage": "Authentication required",
+                      "details": {
+                        "error": "No valid session found",
+                        "hint": "Please sign in to access this resource."
+                      },
+                      "type": "unauthorized"
+                    }
+                  },
+                  "expiredSession": {
+                    "summary": "Session expired",
+                    "description": "User session has expired",
+                    "value": {
+                      "success": false,
+                      "message": "Session expired",
+                      "rawErrorMessage": "Session expired",
+                      "details": {
+                        "error": "Your session has expired",
+                        "hint": "Please sign in again to continue."
+                      },
+                      "type": "unauthorized"
+                    }
+                  },
+                  "invalidToken": {
+                    "summary": "Invalid session token",
+                    "description": "Session token is invalid or tampered",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid session",
+                      "rawErrorMessage": "Invalid session",
+                      "details": {
+                        "error": "Session token is invalid",
+                        "hint": "Please sign in again."
+                      },
+                      "type": "unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred",
+                      "rawErrorMessage": "Failed to retrieve session info",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later or contact support."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/oauth/linkedin": {
+      "get": {
+        "x-order": 14,
+        "summary": "Initiate LinkedIn OAuth sign-in",
+        "description": "Redirect to LinkedIn OAuth authorization URL.\n\n**OAuth Flow:**\n1. User clicks \"Sign in with LinkedIn\"\n2. Frontend redirects to this endpoint\n3. Server redirects to LinkedIn's OAuth consent screen\n4. User grants permission\n5. LinkedIn redirects back to callback endpoint\n",
+        "tags": [
+          "Authentication",
+          "OAuth"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "redirect",
+            "schema": {
+              "type": "string"
+            },
+            "description": "URL to redirect after successful authentication",
+            "example": "/dashboard"
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user"
+              ]
+            },
+            "description": "Role for new user registration (optional)"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to LinkedIn OAuth",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "LinkedIn OAuth authorization URL",
+                "example": "https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=xxx&redirect_uri=xxx&scope=openid%20profile%20email&state=xxx"
+              }
+            }
+          },
+          "400": {
+            "description": "OAuth configuration error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "missingConfig": {
+                    "summary": "Missing OAuth configuration",
+                    "description": "LinkedIn OAuth is not properly configured",
+                    "value": {
+                      "success": false,
+                      "message": "OAuth configuration error",
+                      "rawErrorMessage": "OAuth configuration error",
+                      "details": {
+                        "error": "LinkedIn OAuth is not configured",
+                        "hint": "Please contact support."
+                      },
+                      "type": "bad_request"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "serverError": {
+                    "summary": "Failed to initiate OAuth",
+                    "value": {
+                      "success": false,
+                      "message": "Failed to initiate LinkedIn OAuth",
+                      "rawErrorMessage": "Failed to initiate LinkedIn OAuth",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/oauth/linkedin/callback": {
+      "get": {
+        "x-order": 15,
+        "summary": "LinkedIn OAuth callback",
+        "description": "Handle LinkedIn OAuth callback and complete authentication.\n\n**Behavior:**\n- If user exists: Signs them in\n- If user doesn't exist: Creates new account and signs them in\n- Sets session cookie on successful authentication\n",
+        "tags": [
+          "Authentication",
+          "OAuth"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "OAuth authorization code from LinkedIn",
+            "example": "AQR7..."
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "type": "string"
+            },
+            "description": "OAuth state parameter (contains redirect URL and role)"
+          },
+          {
+            "in": "query",
+            "name": "error",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Error code if user denied access"
+          },
+          {
+            "in": "query",
+            "name": "error_description",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Human-readable error description"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth authentication successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userInfo": {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "allowedRoutes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "isNewUser": {
+                          "type": "boolean",
+                          "description": "Whether this is a new user registration"
+                        }
+                      }
+                    },
+                    "_links": {
+                      "type": "object",
+                      "properties": {
+                        "redirectUrl": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "existingUser": {
+                    "summary": "Existing user sign in",
+                    "description": "User already has an account",
+                    "value": {
+                      "success": true,
+                      "message": "LinkedIn authentication successful",
+                      "data": {
+                        "userInfo": {
+                          "id": "550e8400-e29b-41d4-a716-446655440000",
+                          "email": "user@company.com",
+                          "userName": "john-doe",
+                          "profileImage": "https://media.licdn.com/...",
+                          "roles": [
+                            "user"
+                          ],
+                          "permissions": [
+                            "user:read_own_profile",
+                            "user:update_own_profile"
+                          ],
+                          "isVerified": true
+                        },
+                        "allowedRoutes": [
+                          "/dashboard",
+                          "/profile"
+                        ],
+                        "isNewUser": false
+                      },
+                      "_links": {
+                        "redirectUrl": "/dashboard"
+                      }
+                    }
+                  },
+                  "newUser": {
+                    "summary": "New user registration",
+                    "description": "User created via LinkedIn OAuth",
+                    "value": {
+                      "success": true,
+                      "message": "Account created successfully via LinkedIn",
+                      "data": {
+                        "userInfo": {
+                          "id": "660e8400-e29b-41d4-a716-446655440001",
+                          "email": "newuser@company.com",
+                          "userName": "jane-smith",
+                          "profileImage": "https://media.licdn.com/...",
+                          "roles": [
+                            "user"
+                          ],
+                          "permissions": [
+                            "user:read_own_profile",
+                            "user:update_own_profile"
+                          ],
+                          "isVerified": true
+                        },
+                        "allowedRoutes": [
+                          "/onboarding",
+                          "/profile"
+                        ],
+                        "isNewUser": true
+                      },
+                      "_links": {
+                        "redirectUrl": "/onboarding"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "OAuth error or invalid code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accessDenied": {
+                    "summary": "User denied access",
+                    "description": "User refused to grant OAuth permissions",
+                    "value": {
+                      "success": false,
+                      "message": "LinkedIn authentication cancelled",
+                      "rawErrorMessage": "user_cancelled_authorize",
+                      "details": {
+                        "error": "OAuth access was denied by user",
+                        "hint": "Please grant required permissions to sign in with LinkedIn."
+                      },
+                      "type": "bad_request"
+                    }
+                  },
+                  "invalidCode": {
+                    "summary": "Invalid authorization code",
+                    "description": "The OAuth code is invalid or expired",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid OAuth code",
+                      "rawErrorMessage": "Invalid OAuth code",
+                      "details": {
+                        "error": "The authorization code is invalid or has expired",
+                        "hint": "Please try signing in again."
+                      },
+                      "type": "bad_request"
+                    }
+                  },
+                  "missingCode": {
+                    "summary": "Missing authorization code",
+                    "description": "No code parameter in callback",
+                    "value": {
+                      "success": false,
+                      "message": "Missing authorization code",
+                      "rawErrorMessage": "Missing authorization code",
+                      "details": {
+                        "error": "OAuth callback missing required code parameter",
+                        "hint": "Please try signing in again."
+                      },
+                      "type": "bad_request"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "tokenExchangeFailed": {
+                    "summary": "Token exchange failed",
+                    "description": "Failed to exchange code for token",
+                    "value": {
+                      "success": false,
+                      "message": "LinkedIn authentication failed",
+                      "rawErrorMessage": "Token exchange failed",
+                      "details": {
+                        "error": "Failed to authenticate with LinkedIn",
+                        "hint": "Please try again or use a different sign-in method."
+                      },
+                      "type": "unauthorized"
+                    }
+                  },
+                  "unverifiedEmail": {
+                    "summary": "Unverified LinkedIn email",
+                    "description": "LinkedIn account email is not verified",
+                    "value": {
+                      "success": false,
+                      "message": "LinkedIn email not verified",
+                      "rawErrorMessage": "LinkedIn email not verified",
+                      "details": {
+                        "error": "Your LinkedIn account email is not verified",
+                        "hint": "Please verify your LinkedIn account email first."
+                      },
+                      "type": "unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already registered with different method",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "emailExists": {
+                    "summary": "Email registered with password",
+                    "description": "User already exists with email/password authentication",
+                    "value": {
+                      "success": false,
+                      "message": "Email already registered",
+                      "rawErrorMessage": "Email already registered",
+                      "details": {
+                        "error": "An account with this email already exists using email/password sign-in",
+                        "hint": "Please sign in with your email and password instead."
+                      },
+                      "type": "conflict"
+                    }
+                  },
+                  "linkedInEmailConflict": {
+                    "summary": "Email registered with Google",
+                    "description": "User already exists with Google authentication",
+                    "value": {
+                      "success": false,
+                      "message": "Email already registered with another provider",
+                      "rawErrorMessage": "Email already registered with another provider",
+                      "details": {
+                        "error": "An account with this email already exists using Google sign-in",
+                        "hint": "Please sign in with Google instead."
+                      },
+                      "type": "conflict"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred",
+                      "rawErrorMessage": "Failed to complete LinkedIn authentication",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/oauth/google": {
+      "get": {
+        "x-order": 12,
+        "summary": "Initiate Google OAuth sign-in",
+        "description": "Redirect to Google OAuth authorization URL.\n\n**OAuth Flow:**\n1. User clicks \"Sign in with Google\"\n2. Frontend redirects to this endpoint\n3. Server redirects to Google's OAuth consent screen\n4. User grants permission\n5. Google redirects back to callback endpoint\n",
+        "tags": [
+          "Authentication",
+          "OAuth"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "redirect",
+            "schema": {
+              "type": "string"
+            },
+            "description": "URL to redirect after successful authentication",
+            "example": "/dashboard"
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user"
+              ]
+            },
+            "description": "Role for new user registration (optional)"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to Google OAuth",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Google OAuth authorization URL",
+                "example": "https://accounts.google.com/o/oauth2/v2/auth?client_id=xxx&redirect_uri=xxx&scope=email%20profile&response_type=code&state=xxx"
+              }
+            }
+          },
+          "400": {
+            "description": "OAuth configuration error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "missingConfig": {
+                    "summary": "Missing OAuth configuration",
+                    "description": "Google OAuth is not properly configured",
+                    "value": {
+                      "success": false,
+                      "message": "OAuth configuration error",
+                      "rawErrorMessage": "OAuth configuration error",
+                      "details": {
+                        "error": "Google OAuth is not configured",
+                        "hint": "Please contact support."
+                      },
+                      "type": "bad_request"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "serverError": {
+                    "summary": "Failed to initiate OAuth",
+                    "value": {
+                      "success": false,
+                      "message": "Failed to initiate Google OAuth",
+                      "rawErrorMessage": "Failed to initiate Google OAuth",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/oauth/google/callback": {
+      "get": {
+        "x-order": 13,
+        "summary": "Google OAuth callback",
+        "description": "Handle Google OAuth callback and complete authentication.\n\n**Behavior:**\n- If user exists: Signs them in\n- If user doesn't exist: Creates new account and signs them in\n- Sets session cookie on successful authentication\n",
+        "tags": [
+          "Authentication",
+          "OAuth"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "OAuth authorization code from Google",
+            "example": "4/0AX4XfWj..."
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "type": "string"
+            },
+            "description": "OAuth state parameter (contains redirect URL and role)"
+          },
+          {
+            "in": "query",
+            "name": "error",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Error code if user denied access"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth authentication successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userInfo": {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "allowedRoutes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "isNewUser": {
+                          "type": "boolean",
+                          "description": "Whether this is a new user registration"
+                        }
+                      }
+                    },
+                    "_links": {
+                      "type": "object",
+                      "properties": {
+                        "redirectUrl": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "existingUser": {
+                    "summary": "Existing user sign in",
+                    "description": "User already has an account",
+                    "value": {
+                      "success": true,
+                      "message": "Google authentication successful",
+                      "data": {
+                        "userInfo": {
+                          "id": "550e8400-e29b-41d4-a716-446655440000",
+                          "email": "user@gmail.com",
+                          "userName": "john-doe",
+                          "profileImage": "https://lh3.googleusercontent.com/...",
+                          "roles": [
+                            "user"
+                          ],
+                          "permissions": [
+                            "user:read_own_profile",
+                            "user:update_own_profile"
+                          ],
+                          "isVerified": true
+                        },
+                        "allowedRoutes": [
+                          "/dashboard",
+                          "/profile"
+                        ],
+                        "isNewUser": false
+                      },
+                      "_links": {
+                        "redirectUrl": "/dashboard"
+                      }
+                    }
+                  },
+                  "newUser": {
+                    "summary": "New user registration",
+                    "description": "User created via Google OAuth",
+                    "value": {
+                      "success": true,
+                      "message": "Account created successfully via Google",
+                      "data": {
+                        "userInfo": {
+                          "id": "660e8400-e29b-41d4-a716-446655440001",
+                          "email": "newuser@gmail.com",
+                          "userName": "jane-smith",
+                          "profileImage": "https://lh3.googleusercontent.com/...",
+                          "roles": [
+                            "user"
+                          ],
+                          "permissions": [
+                            "user:read_own_profile",
+                            "user:update_own_profile"
+                          ],
+                          "isVerified": true
+                        },
+                        "allowedRoutes": [
+                          "/onboarding",
+                          "/profile"
+                        ],
+                        "isNewUser": true
+                      },
+                      "_links": {
+                        "redirectUrl": "/onboarding"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "OAuth error or invalid code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accessDenied": {
+                    "summary": "User denied access",
+                    "description": "User refused to grant OAuth permissions",
+                    "value": {
+                      "success": false,
+                      "message": "Google authentication cancelled",
+                      "rawErrorMessage": "User denied access",
+                      "details": {
+                        "error": "OAuth access was denied by user",
+                        "hint": "Please grant required permissions to sign in with Google."
+                      },
+                      "type": "bad_request"
+                    }
+                  },
+                  "invalidCode": {
+                    "summary": "Invalid authorization code",
+                    "description": "The OAuth code is invalid or expired",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid OAuth code",
+                      "rawErrorMessage": "Invalid OAuth code",
+                      "details": {
+                        "error": "The authorization code is invalid or has expired",
+                        "hint": "Please try signing in again."
+                      },
+                      "type": "bad_request"
+                    }
+                  },
+                  "missingCode": {
+                    "summary": "Missing authorization code",
+                    "description": "No code parameter in callback",
+                    "value": {
+                      "success": false,
+                      "message": "Missing authorization code",
+                      "rawErrorMessage": "Missing authorization code",
+                      "details": {
+                        "error": "OAuth callback missing required code parameter",
+                        "hint": "Please try signing in again."
+                      },
+                      "type": "bad_request"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "tokenExchangeFailed": {
+                    "summary": "Token exchange failed",
+                    "description": "Failed to exchange code for token",
+                    "value": {
+                      "success": false,
+                      "message": "Google authentication failed",
+                      "rawErrorMessage": "Token exchange failed",
+                      "details": {
+                        "error": "Failed to authenticate with Google",
+                        "hint": "Please try again or use a different sign-in method."
+                      },
+                      "type": "unauthorized"
+                    }
+                  },
+                  "unverifiedEmail": {
+                    "summary": "Unverified Google email",
+                    "description": "Google account email is not verified",
+                    "value": {
+                      "success": false,
+                      "message": "Google email not verified",
+                      "rawErrorMessage": "Google email not verified",
+                      "details": {
+                        "error": "Your Google account email is not verified",
+                        "hint": "Please verify your Google account email first."
+                      },
+                      "type": "unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already registered with different method",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "emailExists": {
+                    "summary": "Email registered with password",
+                    "description": "User already exists with email/password authentication",
+                    "value": {
+                      "success": false,
+                      "message": "Email already registered",
+                      "rawErrorMessage": "Email already registered",
+                      "details": {
+                        "error": "An account with this email already exists using email/password sign-in",
+                        "hint": "Please sign in with your email and password instead."
+                      },
+                      "type": "conflict"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred",
+                      "rawErrorMessage": "Failed to complete Google authentication",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/sign-up": {
+      "post": {
+        "x-order": 1,
+        "summary": "Register new user",
+        "description": "Create a new user account",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "email",
+                  "password",
+                  "confirmPassword",
+                  "role"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john.doe@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 12,
+                    "example": "P@ssw0rd1234"
+                  },
+                  "confirmPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 12,
+                    "example": "P@ssw0rd1234"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user"
+                    ]
+                  }
+                }
+              },
+              "examples": {
+                "signup": {
+                  "summary": "Self-service signup payload",
+                  "value": {
+                    "name": "John Doe",
+                    "email": "john.doe@example.com",
+                    "password": "P@ssw0rd1234",
+                    "confirmPassword": "P@ssw0rd1234",
+                    "role": "user"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "verificationLink": {
+                      "type": "string",
+                      "description": "Verification link (only in non-production environments)"
+                    },
+                    "_links": {
+                      "type": "object",
+                      "properties": {
+                        "redirectUrl": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "registered": {
+                    "summary": "Registration successful",
+                    "x-requestExample": {
+                      "name": "John Doe",
+                      "email": "john.doe@example.com",
+                      "password": "P@ssw0rd1234",
+                      "confirmPassword": "P@ssw0rd1234",
+                      "role": "user"
+                    },
+                    "value": {
+                      "success": true,
+                      "message": "Signup successful",
+                      "verificationLink": "https://app.example.com/auth/verify-email?token=abc&email=john.doe@example.com",
+                      "_links": {
+                        "redirectUrl": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict (email already exists)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "emailAlreadyExists": {
+                    "summary": "Email already exists",
+                    "description": "A verified user with this email already exists",
+                    "x-requestExample": {
+                      "name": "John Doe",
+                      "email": "existing.user@example.com",
+                      "password": "P@ssw0rd1234",
+                      "confirmPassword": "P@ssw0rd1234",
+                      "role": "user"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "This email is already in use. Want to log in?",
+                      "rawErrorMessage": "This email is already in use. Want to log in?",
+                      "details": {
+                        "error": "A verified user with this email already exists",
+                        "hint": "Please use a different email or try signing in."
+                      },
+                      "type": "conflict"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (invalid data format or unsupported role)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unsupportedRole": {
+                    "summary": "Unsupported role",
+                    "description": "Only self-registrable roles are accepted at signup",
+                    "x-requestExample": {
+                      "name": "Some User",
+                      "email": "some.user@example.com",
+                      "password": "P@ssw0rd1234",
+                      "confirmPassword": "P@ssw0rd1234",
+                      "role": "admin"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Something went wrong",
+                      "rawErrorMessage": "Something went wrong",
+                      "details": {
+                        "error": "User attempting to sign up with role: admin. Allowed roles: user",
+                        "hint": "Please select a self-registrable role for registration."
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "passwordMismatch": {
+                    "summary": "Password confirmation mismatch",
+                    "description": "Password and confirm password do not match",
+                    "x-requestExample": {
+                      "name": "John Doe",
+                      "email": "john.doe@example.com",
+                      "password": "P@ssw0rd1234",
+                      "confirmPassword": "DifferentPass1234",
+                      "role": "user"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Passwords do not match",
+                      "details": {
+                        "error": "Password confirmation failed",
+                        "hint": "Please ensure both password fields match",
+                        "validationErrors": [
+                          {
+                            "field": "confirmPassword",
+                            "message": "Passwords do not match",
+                            "code": "password_mismatch"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "description": "An unexpected error occurred on the server",
+                    "x-requestExample": {
+                      "name": "John Doe",
+                      "email": "john.doe@example.com",
+                      "password": "P@ssw0rd1234",
+                      "confirmPassword": "P@ssw0rd1234",
+                      "role": "user"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred.",
+                      "rawErrorMessage": "Database connection failed.",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later or contact support if the problem persists."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/resend-email-verification": {
+      "post": {
+        "x-order": 3,
+        "summary": "Resend email verification",
+        "description": "Resend verification email to user.\n\n**Use Cases:**\n- User didn't receive the original verification email\n- Original verification link expired\n- User needs a new verification link\n\n**Note:** The verification link is only included for local development requests.\n",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address to resend verification to"
+                  }
+                }
+              },
+              "examples": {
+                "validEmail": {
+                  "summary": "Resend to valid email",
+                  "value": {
+                    "email": "user@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification email resent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "verificationLink": {
+                      "type": "string",
+                      "description": "Verification link (only returned for local development requests)"
+                    },
+                    "_links": {
+                      "type": "object",
+                      "properties": {
+                        "redirectUrl": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Verification email sent",
+                    "description": "Email sent successfully to unverified user",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": true,
+                      "message": "Verification email resent successfully",
+                      "verificationLink": "http://localhost:3000/auth/verify-email?token=abc123&email=user@example.com",
+                      "_links": {
+                        "redirectUrl": "/auth/check-email"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "User not found or already verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "alreadyVerified": {
+                    "summary": "Email already verified",
+                    "description": "User's email is already verified",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Email is already verified",
+                      "rawErrorMessage": "Email is already verified",
+                      "details": {
+                        "error": "This email address has already been verified",
+                        "hint": "You can proceed to sign in."
+                      },
+                      "type": "bad_request"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "userNotFound": {
+                    "summary": "User not found",
+                    "description": "No user found with the provided email",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Email is not found in our system",
+                      "rawErrorMessage": "Email is not found in our system",
+                      "details": {
+                        "error": "No user found with this email address",
+                        "hint": "Please check the email address or register first."
+                      },
+                      "type": "not_found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "missingEmail": {
+                    "summary": "Missing email field",
+                    "description": "Email field is required but not provided",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Email is required",
+                      "details": {
+                        "error": "Required field validation failed",
+                        "hint": "Please provide an email address",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Email is required",
+                            "code": "required"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "invalidEmailFormat": {
+                    "summary": "Invalid email format",
+                    "description": "Email format is invalid",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Invalid email format",
+                      "details": {
+                        "error": "Email format validation failed",
+                        "hint": "Please provide a valid email address",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Invalid email format",
+                            "code": "invalid_format"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "rateLimited": {
+                    "summary": "Rate limit exceeded",
+                    "description": "Too many verification emails requested",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Too many requests",
+                      "rawErrorMessage": "Rate limit exceeded",
+                      "details": {
+                        "error": "Too many verification email requests",
+                        "hint": "Please wait a few minutes before requesting another verification email."
+                      },
+                      "type": "rate_limit"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred",
+                      "rawErrorMessage": "Failed to send verification email",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/verify-email": {
+      "post": {
+        "x-order": 2,
+        "summary": "Verify user email",
+        "description": "Verify user email using token from verification email",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "email"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "Verification token from email"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email verification successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userInfo": {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "allowedRoutes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "_links": {
+                      "type": "object",
+                      "properties": {
+                        "redirectUrl": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "verified": {
+                    "summary": "Email verified",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": true,
+                      "message": "Email verified successfully",
+                      "data": {
+                        "userInfo": {
+                          "id": "550e8400-e29b-41d4-a716-446655440000",
+                          "email": "user@example.com",
+                          "userName": "John Doe",
+                          "roles": [
+                            "user"
+                          ],
+                          "permissions": [
+                            "user:read_own_profile"
+                          ]
+                        },
+                        "allowedRoutes": [
+                          "/dashboard"
+                        ]
+                      },
+                      "_links": {
+                        "redirectUrl": "/auth/welcome"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Token validation errors (mismatch, role issues, etc.)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "tokenEmailMismatch": {
+                    "summary": "Token and email mismatch",
+                    "description": "The verification token does not match the provided email",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Something went wrong",
+                      "rawErrorMessage": "Something went wrong",
+                      "details": {
+                        "error": "The verification token does not match the provided email",
+                        "hint": "Please use the correct verification link from your email."
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "roleMismatch": {
+                    "summary": "Token role mismatch",
+                    "description": "The verification token role does not match the user's role",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Something went wrong",
+                      "rawErrorMessage": "Something went wrong",
+                      "details": {
+                        "error": "The verification token role does not match user's role",
+                        "hint": "Please contact support for assistance."
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "userNotFound": {
+                    "summary": "User not found",
+                    "description": "No user found with the provided email address",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Email is not found in our system.",
+                      "rawErrorMessage": "Email is not found in our system.",
+                      "details": {
+                        "error": "No user found with the provided email address",
+                        "hint": "Please register first or check the email address."
+                      },
+                      "type": "not_found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "alreadyVerified": {
+                    "summary": "Email already verified",
+                    "description": "The email address has already been verified",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Email is already verified. Please login.",
+                      "rawErrorMessage": "Email is already verified. Please login.",
+                      "details": {
+                        "error": "The email address has already been verified",
+                        "hint": "Please proceed to login instead of requesting verification again."
+                      },
+                      "type": "conflict"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (invalid request format)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "missingFields": {
+                    "summary": "Missing required fields",
+                    "description": "Token or email field is missing",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Required fields are missing",
+                      "details": {
+                        "error": "Required field validation failed",
+                        "hint": "Please provide both token and email",
+                        "validationErrors": [
+                          {
+                            "field": "token",
+                            "message": "Token is required",
+                            "code": "required"
+                          },
+                          {
+                            "field": "email",
+                            "message": "Email is required",
+                            "code": "required"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "invalidEmailFormat": {
+                    "summary": "Invalid email format",
+                    "description": "Email format is not valid",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Invalid email format",
+                      "details": {
+                        "error": "Email format validation failed",
+                        "hint": "Please provide a valid email address",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Invalid email format",
+                            "code": "invalid_format"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "description": "An unexpected error occurred on the server",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred.",
+                      "rawErrorMessage": "Database connection failed.",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later or contact support if the problem persists."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/v1/check-email-uniqueness": {
+      "post": {
+        "x-order": 10,
+        "summary": "Check email availability before signup",
+        "description": "Validates email format and returns whether the email can continue through\nsignup. The response intentionally exposes only a boolean availability\nresult; account state details are not returned.\n",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email availability check completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "isUnique": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "available": {
+                    "summary": "Email can continue through signup",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": true,
+                      "message": "Available",
+                      "data": {
+                        "isUnique": true
+                      }
+                    }
+                  },
+                  "unavailable": {
+                    "summary": "Email is already used by a verified account",
+                    "x-requestExample": {
+                      "email": "used@example.com"
+                    },
+                    "value": {
+                      "success": true,
+                      "message": "Not available",
+                      "data": {
+                        "isUnique": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "missingEmail": {
+                    "summary": "Missing email field",
+                    "description": "Email field is required but not provided",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Email is required",
+                      "details": {
+                        "error": "Required field validation failed",
+                        "hint": "Please provide an email address",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Email is required",
+                            "code": "required"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  },
+                  "invalidEmailFormat": {
+                    "summary": "Invalid email format",
+                    "description": "Email format is not valid",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "Validation failed",
+                      "rawErrorMessage": "Invalid email format",
+                      "details": {
+                        "error": "Email format validation failed",
+                        "hint": "Please provide a valid email address (e.g., user@example.com)",
+                        "validationErrors": [
+                          {
+                            "field": "email",
+                            "message": "Invalid email format",
+                            "code": "invalid_format"
+                          }
+                        ]
+                      },
+                      "type": "validation_error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "rawErrorMessage": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "serverError": {
+                    "summary": "Internal server error",
+                    "description": "An unexpected error occurred on the server",
+                    "x-requestExample": {
+                      "email": "user@example.com"
+                    },
+                    "value": {
+                      "success": false,
+                      "message": "An internal server error occurred.",
+                      "rawErrorMessage": "Database connection failed.",
+                      "details": {
+                        "error": "Internal server error",
+                        "hint": "Please try again later or contact support if the problem persists."
+                      },
+                      "type": "server_error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "session_token",
+        "description": "Session token stored in cookies"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Error type/code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error details"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "Success": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "profileImage": {
+            "type": "string",
+            "format": "uri"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "registeredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

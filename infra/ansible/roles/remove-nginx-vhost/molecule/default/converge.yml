@@ -1,0 +1,23 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+    - name: Create a dummy vhost to be removed
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/test.example.com
+        content: "server { listen 80; server_name test.example.com; }"
+        mode: "0644"
+    - name: Enable the dummy vhost
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/test.example.com
+        dest: /etc/nginx/sites-enabled/test.example.com
+        state: link
+  roles:
+    - role: remove-nginx-vhost

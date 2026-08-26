@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Softeko
+  description: Deploy an Nginx virtual host with optional Let's Encrypt SSL
+  company: Softeko
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - nginx
+    - ssl
+    - certbot
+    - vhost

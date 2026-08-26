@@ -1,0 +1,6 @@
+# Install with: pip install -r requirements-dev.txt
+ansible-core>=2.14
+ansible-lint
+molecule
+molecule-plugins[docker]
+docker

@@ -1,0 +1,20 @@
+---
+# Default variables for deploy-redis role
+# Override these in group_vars, host_vars, or playbook vars
+
+redis:
+  image: "redis:7.2"
+  container_name: "redis"
+  host_port: 6379
+  port: 6379
+  network: "app-net"
+  network_alias: "redis"
+  named_volume: "redis-data"
+  conf_src: "/opt/redis/configs/redis.conf"
+  password: "changeme"
+
+# Common network name (should match across all services)
+common_network: "app-net"
+
+# Admin user for directory ownership
+admin_user: "root"

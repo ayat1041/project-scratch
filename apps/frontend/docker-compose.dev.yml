@@ -1,0 +1,22 @@
+# version: '3.8'
+services:
+  starter-frontend-app-dev:
+    image: starter-frontend-app-dev
+    build:
+      context: ../../
+      dockerfile: apps/frontend/Dockerfile
+      target: dev
+
+    container_name: starter-frontend-app-dev
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/usr/src/app/apps/frontend
+      - node_modules:/usr/src/app/apps/frontend/node_modules
+      - build:/usr/src/app/apps/frontend/.next
+    env_file:
+      - .env
+
+volumes:
+  node_modules:
+  build:

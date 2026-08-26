@@ -1,0 +1,37 @@
+---
+name: Ansible Lint
+
+on:
+  push:
+    paths:
+      - "infra/ansible/**"
+  pull_request:
+    paths:
+      - "infra/ansible/**"
+
+jobs:
+  lint:
+    name: ansible-lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/ansible
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install ansible-lint ansible-core
+
+      - name: Install Galaxy collections
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Run ansible-lint
+        run: ansible-lint

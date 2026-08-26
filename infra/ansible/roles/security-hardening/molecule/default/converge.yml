@@ -1,0 +1,13 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  become: true
+  pre_tasks:
+    - name: Create test admin user
+      ansible.builtin.user:
+        name: testadmin
+        state: present
+        shell: /bin/bash
+  roles:
+    - role: security-hardening

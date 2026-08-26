@@ -1,0 +1,141 @@
+# host_vars for the "app" host declared in inventory/hosts.yml.
+#
+# Steps:
+#   1. Copy this file: cp app.yml.example app.yml
+#   2. Fill in the CHANGE_ME values for the real server
+#   3. Create app_vault.yml alongside it (see app_vault.yml.example) for secrets
+#
+# app.yml itself is NOT secret (passwords are vault-templated) and is meant
+# to be committed once filled in for a real deployment target.
+
+ip_address: "CHANGE_ME"
+admin_user: "apps"
+ansible_user: "apps"
+admin_public_key: "CHANGE_ME" # ssh-ed25519 AAAA... your-deploy-key
+current_user: "CHANGE_ME"
+admin_user_password: "{{ vault_admin_user_password }}"
+common_network: "starter-dev-app-network"
+
+docker_users:
+  - "{{ admin_user }}"
+
+# ------------------------------------
+# SSH settings
+# ------------------------------------
+ssh_port: 22
+ssh_max_auth_tries: 8
+ssh_max_sessions: 10
+ssh_login_grace_time: 30s
+remove_ssh_22: false
+
+# ------------------------------------
+# Fail2Ban settings
+# ------------------------------------
+admin_trusted_ips:
+  - "CHANGE_ME" # IPs allowed to bypass fail2ban lockout
+f2b_maxretry: 8
+f2b_findtime: 10m
+f2b_bantime: 30m
+
+# ------------------------------------
+# Firewall settings
+# ------------------------------------
+firewall_allowed_ports:
+  - "22/tcp"
+  - "80/tcp"
+  - "443/tcp"
+firewall_deny_ports:
+  - "3000/tcp"
+  - "3001/tcp"
+  - "3002/tcp"
+  - "8000/tcp"
+  - "8001/tcp"
+  - "8002/tcp"
+  - "5432/tcp"
+
+# ------------------------------------
+# Email / SMTP settings (msmtp + logwatch)
+# ------------------------------------
+email_smtp_host: "CHANGE_ME"
+email_smtp_port: 587
+email_smtp_user: "CHANGE_ME"
+email_smtp_password: "{{ vault_email_smtp_password }}"
+email_smtp_from: "support@example.com"
+admin_email: "admin@example.com"
+mail_domain: "example.com"
+
+# ------------------------------------
+# Nginx — one vhost per playbook run.
+# To add another domain, update these values and re-run add-nginx-vhost.yml.
+# ------------------------------------
+nginx:
+  domain_name: "devapi.example.com"
+  www_domain_name: "www.devapi.example.com"
+  app_port: 8000
+  certbot_email: "admin@example.com"
+
+# ------------------------------------
+# PostgreSQL settings
+# ------------------------------------
+postgres:
+  version: "postgres:15"
+  container_name: "starter-db-staging"
+  restart_policy: "unless-stopped"
+  user: "starteruser"
+  password: "{{ vault_postgres_password }}"
+  db: "starterdb"
+  host_port: 5433
+  container_port: 5432
+  network: "starter-staging-app-network"
+  network_alias: "starter-db-staging"
+  data_dir: "/var/lib/postgresql/starter-pg-data-staging"
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U starteruser -d starterdb"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+
+# ------------------------------------
+# Redis settings
+# ------------------------------------
+redis:
+  image: "redis:7.2.4"
+  container_name: "starter-redis-staging"
+  host_port: 6380
+  port: 6379
+  network: "starter-staging-app-network"
+  network_alias: "starter-redis-staging"
+  named_volume: "starter-redis-staging-data"
+  conf_src: "/opt/redis/configs/redis-staging.conf"
+  password: "{{ vault_redis_password }}"
+
+# ------------------------------------
+# RabbitMQ settings
+# ------------------------------------
+rabbitmq:
+  image: "rabbitmq:3.13-management-alpine"
+  container_name: "starter-rabbitmq-staging"
+  amqp_port: 5672
+  management_port: 15672
+  host_amqp_port: 5673
+  host_management_port: 15673
+  network: "starter-staging-app-network"
+  network_alias: "starter-rabbitmq-staging"
+  named_volume: "starter-rabbitmq-staging-data"
+  user: "starter"
+  password: "{{ vault_rabbitmq_password }}"
+
+# Dev-environment equivalent (uncomment and adjust host_port/host_management_port
+# to run alongside staging on the same box):
+# rabbitmq:
+#   image: "rabbitmq:3.13-management-alpine"
+#   container_name: "starter-rabbitmq-dev"
+#   amqp_port: 5672
+#   management_port: 15672
+#   host_amqp_port: 5672
+#   host_management_port: 15672
+#   network: "starter-dev-app-network"
+#   network_alias: "starter-rabbitmq-dev"
+#   named_volume: "starter-rabbitmq-dev-data"
+#   user: "starter"
+#   password: "{{ vault_rabbitmq_password }}"

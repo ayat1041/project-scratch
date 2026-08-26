@@ -1,0 +1,31 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: true
+  vars:
+    domain: "test.example.com"
+  tasks:
+    - name: Assert vhost file exists in sites-available
+      ansible.builtin.stat:
+        path: "/etc/nginx/sites-available/{{ domain }}"
+      register: vhost_file
+
+    - name: Assert vhost file is present
+      ansible.builtin.assert:
+        that: vhost_file.stat.exists
+        fail_msg: "Vhost config is missing from sites-available"
+
+    - name: Assert vhost symlink exists in sites-enabled
+      ansible.builtin.stat:
+        path: "/etc/nginx/sites-enabled/{{ domain }}"
+      register: vhost_link
+
+    - name: Assert vhost is enabled
+      ansible.builtin.assert:
+        that: vhost_link.stat.exists
+        fail_msg: "Vhost is not enabled in sites-enabled"
+
+    - name: Assert nginx config is valid
+      ansible.builtin.command: nginx -t
+      changed_when: false
