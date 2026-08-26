@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Bricolage_Grotesque, Inter } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
 
 import { AuthProvider } from '@/context/auth-context';
@@ -11,11 +11,6 @@ import AuthCheck from '@modules/auth/components/shared/AuthCheck';
 import ObservabilityProvider from '@/components/ObservabilityProvider';
 import BackToTopButton from '@repo/ui/components/common/BackToTopButton';
 import { ThemeProvider } from '@repo/ui/components/common/ThemeProvider';
-
-const bricolage = Bricolage_Grotesque({
-  variable: '--font-bricolage',
-  subsets: ['latin'],
-});
 
 const inter = Inter({
   variable: '--font-inter',
@@ -35,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
-        className={`${bricolage.variable} ${inter.variable} flex w-full flex-col items-center antialiased`}
+        className={`${inter.variable} flex w-full flex-col items-center antialiased`}
         suppressHydrationWarning={true}
       >
         <ThemeProvider>

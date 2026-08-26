@@ -570,11 +570,7 @@ export default function SignUpForm() {
 
   return (
     <div className="mx-auto">
-      <form
-        onSubmit={handleSubmit}
-        className="animate-slide-up space-y-4"
-        style={{ animationDelay: '0.4s' }}
-      >
+      <form onSubmit={handleSubmit} className="space-y-4">
         <NameInput
           name={formData.name}
           nameError={errors.name}

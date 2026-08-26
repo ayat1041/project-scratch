@@ -15,24 +15,18 @@ export default function WelcomeContent() {
 
   return (
     <div className="flex w-full max-w-xl flex-col items-center gap-10 text-center">
-      <h1
-        className="animate-slide-up text-foreground text-4xl font-semibold md:text-5xl"
-        style={{ animationDelay: '0.1s' }}
-      >
+      <h1 className="text-foreground text-4xl font-semibold md:text-5xl">
         Welcome{mounted && displayName ? `, ${displayName}` : ''}!
       </h1>
 
-      <p
-        className="animate-slide-up text-muted-foreground text-lg leading-relaxed md:text-xl"
-        style={{ animationDelay: '0.2s' }}
-      >
+      <p className="text-muted-foreground text-lg leading-relaxed md:text-xl">
         Your account is verified and ready to go.
       </p>
 
-      <div className="animate-slide-up" style={{ animationDelay: '0.3s' }}>
+      <div>
         <Link
           href={ROUTES.USER.DASHBOARD.href}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring inline-flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg px-10 py-6 text-lg font-medium whitespace-nowrap shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl focus-visible:ring-2 focus-visible:outline-none active:scale-[0.98]"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring inline-flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg px-10 py-6 text-lg font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none"
         >
           Go to your dashboard
           <ArrowRight className="ml-2 h-5 w-5" />

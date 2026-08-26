@@ -1,22 +1,17 @@
 import type { Metadata } from 'next';
 import FullWidthContainer from '@repo/ui/components/containers/FullWidthContainer';
-import SectionContainer from '@repo/ui/components/containers/SectionContainer';
+import HomePage from '@modules/home/components/HomePage';
 
 export const metadata: Metadata = {
-  title: 'Starter',
-  description: 'A generic SaaS starter template.',
+  title: 'Starter — The production-grade full-stack template',
+  description:
+    'A pnpm/Turborepo monorepo with a layered Express + Drizzle backend, two Next.js 15 apps, a shared type system, Docker for local dev, and CI/CD from the first commit.',
 };
 
 export default function Home() {
   return (
-    <>
-      <FullWidthContainer>
-        <SectionContainer>
-          <div className="text-center">
-            <h1 className="text-foreground mb-8 text-4xl font-bold">Starter</h1>
-          </div>
-        </SectionContainer>
-      </FullWidthContainer>
-    </>
+    <FullWidthContainer>
+      <HomePage />
+    </FullWidthContainer>
   );
 }

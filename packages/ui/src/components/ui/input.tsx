@@ -25,10 +25,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div
         className={cn(
           "rounded transition-all duration-200 w-full",
-          "ring-2 ring-transparent ring-offset-2 ring-offset-transparent",
-          "has-[:focus]:ring-primary has-[:focus]:ring-offset-background",
-          "has-[:focus-visible]:ring-primary has-[:focus-visible]:ring-offset-background",
-          "hover:ring-muted-foreground/0",
+          "ring-1 ring-transparent ring-offset-1 ring-offset-transparent",
+          "has-[:focus-visible]:ring-ring/40 has-[:focus-visible]:ring-offset-background",
           wrapperClassName,
         )}
       >
@@ -37,7 +35,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             "border-border bg-input text-foreground flex h-12 w-full rounded border px-4 py-3 text-sm",
             "placeholder:text-muted-foreground",
-            "focus:border-primary focus-visible:border-primary focus:outline-none",
+            "focus:outline-none",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "hover:border-muted-foreground/50",
             className,
