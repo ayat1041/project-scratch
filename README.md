@@ -141,5 +141,3 @@ See `AGENTS.md` / `CLAUDE.md` for the full command list and how the architecture
 6. Start building your domain modules following the patterns in `.claude/skills` — `backend-architecture`, `frontend-architecture`, and `admin-architecture` are the entry points.
 
 ---
-
-Built by Softeko Team
