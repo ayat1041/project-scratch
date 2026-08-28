@@ -15,6 +15,9 @@ let testRoleId: number;
 let testPermissionId: number;
 let seed = 0;
 const uid = () => `${Date.now()}-${++seed}`;
+// Placeholder acting-user id — this role is never assigned to any user in
+// these tests, so the self-lockout guard is a no-op here.
+const testActingUserId = "00000000-0000-0000-0000-000000000000";
 
 before(async () => {
   const [permission] = await db
@@ -53,7 +56,7 @@ after(async () => {
 });
 
 test("deleteSingleRoleService - deletes role and role-permission mappings", async () => {
-  await deleteSingleRoleService(String(testRoleId));
+  await deleteSingleRoleService(String(testRoleId), testActingUserId);
 
   const role = await db
     .select()
@@ -75,7 +78,7 @@ test("deleteSingleRoleService - deletes role and role-permission mappings", asyn
 
 test("deleteSingleRoleService - throws NOT_FOUND for unknown role id", async () => {
   await assert.rejects(
-    () => deleteSingleRoleService("999999999"),
+    () => deleteSingleRoleService("999999999", testActingUserId),
     (err: ApiError) => {
       assert.equal(err.type, ERROR_TYPES.NOT_FOUND);
       return true;

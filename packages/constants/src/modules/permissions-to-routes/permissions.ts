@@ -30,4 +30,15 @@ export const PERMISSIONS = {
         UPDATE_LANGUAGE: "common:update_language",
         DELETE_LANGUAGE: "common:delete_language",
     },
+    CONTENT: {
+        READ_SITE_SEO_SETTINGS: "content:read_site_seo_settings",
+        UPDATE_SITE_SEO_SETTINGS: "content:update_site_seo_settings",
+        PUBLISH_SITE_SEO_SETTINGS: "content:publish_site_seo_settings",
+
+        CREATE_SEO_PAGE: "content:create_seo_page",
+        READ_SEO_PAGE: "content:read_seo_page",
+        UPDATE_SEO_PAGE: "content:update_seo_page",
+        PUBLISH_SEO_PAGE: "content:publish_seo_page",
+        DELETE_SEO_PAGE: "content:delete_seo_page",
+    },
 };

@@ -139,7 +139,7 @@ export const FEATURES = {
     slug: "permissions",
     label: "Permissions",
     jiraEpic: null,
-    apps: ["backend"],
+    apps: ["backend", "admin"],
     status: "shipped",
   },
   F6002: {
@@ -148,8 +148,37 @@ export const FEATURES = {
     slug: "roles",
     label: "Roles",
     jiraEpic: null,
-    apps: ["backend"],
+    apps: ["backend", "admin"],
     status: "shipped",
+  },
+  F6003: {
+    id: "F6003",
+    module: "user-management",
+    slug: "users",
+    label: "User Management",
+    jiraEpic: null,
+    apps: ["backend", "admin"],
+    status: "in-progress",
+  },
+
+  // ─── F7xxx · Content / SEO ────────────────────────────────────────────────
+  F7001: {
+    id: "F7001",
+    module: "content",
+    slug: "site-seo-settings",
+    label: "Site SEO Settings",
+    jiraEpic: null,
+    apps: ["backend", "admin", "frontend"],
+    status: "in-progress",
+  },
+  F7002: {
+    id: "F7002",
+    module: "content",
+    slug: "seo-pages",
+    label: "SEO Page Overrides",
+    jiraEpic: null,
+    apps: ["backend", "admin", "frontend"],
+    status: "planned",
   },
 
   // ─── F9xxx · Platform / infra ─────────────────────────────────────────────

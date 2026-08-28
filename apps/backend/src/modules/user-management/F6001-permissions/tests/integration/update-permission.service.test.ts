@@ -62,11 +62,26 @@ test("updateSinglePermissionService - updates permission when name belongs to ta
   assert.equal(result[0]!.description, "updated description");
 });
 
-test("updateSinglePermissionService - throws NOT_FOUND when provided name does not exist", async () => {
+test("updateSinglePermissionService - renames to a brand-new, unused name successfully", async () => {
+  const newName = `user-management.permission.renamed.${uid()}`;
+
+  const result = await updateSinglePermissionService(String(targetPermissionId), {
+    name: newName,
+    description: "renamed to an unused name",
+  });
+
+  assert.equal(result.length, 1);
+  assert.equal(result[0]!.id, targetPermissionId);
+  assert.equal(result[0]!.name, newName);
+
+  targetName = newName; // subsequent tests in this file reference the current name
+});
+
+test("updateSinglePermissionService - throws NOT_FOUND when the target permission id does not exist", async () => {
   await assert.rejects(
     () =>
-      updateSinglePermissionService(String(targetPermissionId), {
-        name: `missing-name-${uid()}`,
+      updateSinglePermissionService("999999999", {
+        name: `missing-permission-${uid()}`,
         description: "irrelevant",
       }),
     (err: ApiError) => {

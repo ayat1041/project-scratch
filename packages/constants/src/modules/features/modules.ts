@@ -12,6 +12,7 @@ export const MODULE_KEYS = [
   "common",
   "user-management",
   "platform",
+  "content",
 ] as const;
 
 export type ModuleKey = (typeof MODULE_KEYS)[number];
@@ -63,6 +64,13 @@ export const MODULES: Record<ModuleKey, ModuleDefinition> = {
     label: "Platform / infra",
     jiraComponent: "platform",
     featureFolderRoot: "src/modules/platform",
+  },
+  content: {
+    key: "content",
+    band: 7000,
+    label: "Content / SEO",
+    jiraComponent: "content",
+    featureFolderRoot: "src/modules/content",
   },
 };
 

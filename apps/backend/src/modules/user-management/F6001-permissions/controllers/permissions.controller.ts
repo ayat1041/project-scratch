@@ -8,7 +8,9 @@ import {
 } from "@/utils/generate-hateoas-links.utils";
 import { asyncHandler } from "@/utils/async-handler";
 import {
+  bulkDeletePermissionsService,
   createPermissionService,
+  deleteSinglePermissionService,
   getSinglePermissionService,
   listAllPermissionsService,
   updateSinglePermissionService,
@@ -71,16 +73,16 @@ export const getSinglePermissionController = asyncHandler(
       });
     }
 
-    const permission = await getSinglePermissionService(id);
+    const permissionData = await getSinglePermissionService(id);
 
     const _links = generateHateoasLinksForSingleRecord({
       baseUrl: `${req.protocol}://${req.get("host")}${req.baseUrl}`,
-      id: permission[0].id,
+      id: permissionData.permission.id,
     });
 
     res.status(200).json({
       success: true,
-      data: permission,
+      data: permissionData,
       _links,
     });
   },
@@ -139,6 +141,48 @@ export const updateSinglePermissionController = asyncHandler(
       data: updatedPermission,
       message: "Permission updated successfully",
       _links,
+    });
+  },
+);
+
+export const deleteSinglePermissionController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const rawId = req.params.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
+    if (!id) {
+      throw createError.validation("Permission ID is required", {
+        error: "Permission ID is missing in the request parameters",
+        hint: "Please provide a valid permission ID in the request.",
+      });
+    }
+
+    const deleted = await deleteSinglePermissionService(id);
+
+    res.status(200).json({
+      success: true,
+      data: deleted,
+      message: "Permission deleted successfully",
+    });
+  },
+);
+
+export const bulkDeletePermissionsController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const rawIds = req.body?.ids;
+    if (!Array.isArray(rawIds) || rawIds.length === 0) {
+      throw createError.validation("Permission IDs are required", {
+        error: "The ids array is missing or empty in the request body",
+        hint: "Please provide at least one permission ID to delete.",
+      });
+    }
+
+    const ids = rawIds.map((rawId: unknown) => parseInt(String(rawId), 10));
+    const deleted = await bulkDeletePermissionsService(ids);
+
+    res.status(200).json({
+      success: true,
+      data: deleted,
+      message: "Permissions deleted successfully",
     });
   },
 );

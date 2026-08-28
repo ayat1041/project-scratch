@@ -7,6 +7,7 @@ import {
 import { AdminCreateRolePayloadValidationSchema as createRoleSchema } from "@repo/schemas-types/payload-schemas/admin/roles/payload.schema";
 import { validateZodSchema } from "@/middleware/validation.middleware";
 import { asyncHandler } from "@/utils/async-handler";
+import { getUserIdFromAuth } from "@/modules/auth/auth.utils";
 import {
   createRoleService,
   deleteSingleRoleService,
@@ -91,12 +92,12 @@ export const createRolesController = asyncHandler(
   async (req: Request, res: Response) => {
     const validation = validateZodSchema(createRoleSchema)(req.body);
     const { name, description, permissions } = validation;
+    const actingUserId = getUserIdFromAuth(res);
 
-    const newRole = await createRoleService({
-      name,
-      description,
-      permissions,
-    });
+    const newRole = await createRoleService(
+      { name, description, permissions },
+      actingUserId,
+    );
 
     const _links = generateHateoasLinksForSingleRecord({
       baseUrl: `${req.protocol}://${req.get("host")}${req.baseUrl}`,
@@ -125,12 +126,13 @@ export const updateSingleRoleController = asyncHandler(
 
     const validation = validateZodSchema(createRoleSchema)(req.body);
     const { name, description, permissions } = validation;
+    const actingUserId = getUserIdFromAuth(res);
 
-    const updatedRole = await updateSingleRoleService(id, {
-      name,
-      description,
-      permissions,
-    });
+    const updatedRole = await updateSingleRoleService(
+      id,
+      { name, description, permissions },
+      actingUserId,
+    );
 
     const _links = generateHateoasLinksForSingleRecord({
       baseUrl: `${req.protocol}://${req.get("host")}${req.baseUrl}`,
@@ -157,7 +159,8 @@ export const deleteSingleRoleController = asyncHandler(
       });
     }
 
-    await deleteSingleRoleService(id);
+    const actingUserId = getUserIdFromAuth(res);
+    await deleteSingleRoleService(id, actingUserId);
 
     res.status(200).json({
       success: true,

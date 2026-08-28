@@ -1,7 +1,8 @@
 import { db } from "@/db/db";
-import { appPermissionsTable } from "@/db/schema";
+import { appPermissionToRolesTable, appPermissionsTable, appRolesTable } from "@/db/schema";
 import { createError } from "@/middleware/error.middleware";
-import { count, desc, sql } from "drizzle-orm";
+import { invalidateAllUsersCache } from "@/utils/cache-invalidation.utils";
+import { count, desc, eq, inArray, sql } from "drizzle-orm";
 
 type ListPermissionsParams = {
   search?: string;
@@ -22,8 +23,26 @@ export const listAllPermissionsService = async ({
   sort,
 }: ListPermissionsParams) => {
   const query = db
-    .select()
+    .select({
+      id: appPermissionsTable.id,
+      name: appPermissionsTable.name,
+      description: appPermissionsTable.description,
+      createdAt: appPermissionsTable.createdAt,
+      updatedAt: appPermissionsTable.updatedAt,
+      roleCount: sql<number>`count(distinct ${appPermissionToRolesTable.roleId})::int`,
+    })
     .from(appPermissionsTable)
+    .leftJoin(
+      appPermissionToRolesTable,
+      eq(appPermissionsTable.id, appPermissionToRolesTable.permissionId),
+    )
+    .groupBy(
+      appPermissionsTable.id,
+      appPermissionsTable.name,
+      appPermissionsTable.description,
+      appPermissionsTable.createdAt,
+      appPermissionsTable.updatedAt,
+    )
     .orderBy(
       sort === "desc" ? desc(appPermissionsTable.id) : appPermissionsTable.id,
     )
@@ -59,7 +78,15 @@ export const getSinglePermissionService = async (id: string) => {
   const permission = await db
     .select()
     .from(appPermissionsTable)
-    .where(sql`${appPermissionsTable.id} = ${sql.param(id)}`);
+    .where(sql`${appPermissionsTable.id} = ${sql.param(id)}`)
+    .leftJoin(
+      appPermissionToRolesTable,
+      sql`${appPermissionsTable.id} = ${appPermissionToRolesTable.permissionId}`,
+    )
+    .leftJoin(
+      appRolesTable,
+      sql`${appPermissionToRolesTable.roleId} = ${appRolesTable.id}`,
+    );
 
   if (permission.length === 0) {
     throw createError.notFound("Permission not found", {
@@ -68,7 +95,12 @@ export const getSinglePermissionService = async (id: string) => {
     });
   }
 
-  return permission;
+  return {
+    permission: permission[0].app_permissions,
+    roles: permission
+      .filter((row) => row.app_roles)
+      .map((row) => row.app_roles),
+  };
 };
 
 export const createPermissionService = async ({
@@ -97,22 +129,24 @@ export const updateSinglePermissionService = async (
   id: string,
   { name, description }: UpsertPermissionParams,
 ) => {
-  const permissionExists = await db
+  const existingPermission = await db
+    .select()
+    .from(appPermissionsTable)
+    .where(sql`${appPermissionsTable.id} = ${sql.param(id)}`);
+
+  if (existingPermission.length === 0) {
+    throw createError.notFound("Permission not found", {
+      error: "No permission found with the provided ID",
+      hint: "Please check the permission ID and try again.",
+    });
+  }
+
+  const nameConflict = await db
     .select()
     .from(appPermissionsTable)
     .where(sql`${appPermissionsTable.name} = ${sql.param(name)}`);
 
-  if (permissionExists.length === 0) {
-    throw createError.notFound("Permission not found", {
-      error: "No permission found with the provided name",
-      hint: "Please check the permission name and try again.",
-    });
-  }
-
-  if (
-    permissionExists.length > 0 &&
-    permissionExists[0].id !== parseInt(id, 10)
-  ) {
+  if (nameConflict.length > 0 && nameConflict[0].id !== parseInt(id, 10)) {
     throw createError.conflict("Permission already exists with the same name", {
       error: "Permission with this name already exists",
       hint: "Please choose a different name for the permission.",
@@ -124,4 +158,48 @@ export const updateSinglePermissionService = async (
     .set({ name, description })
     .where(sql`${appPermissionsTable.id} = ${sql.param(id)}`)
     .returning();
+};
+
+const deletePermissionsByIds = async (ids: number[]) => {
+  await db
+    .delete(appPermissionToRolesTable)
+    .where(inArray(appPermissionToRolesTable.permissionId, ids));
+
+  const deleted = await db
+    .delete(appPermissionsTable)
+    .where(inArray(appPermissionsTable.id, ids))
+    .returning({ id: appPermissionsTable.id });
+
+  await invalidateAllUsersCache();
+
+  return deleted;
+};
+
+export const deleteSinglePermissionService = async (id: string) => {
+  const permissionId = parseInt(id, 10);
+
+  const existingPermission = await db
+    .select()
+    .from(appPermissionsTable)
+    .where(eq(appPermissionsTable.id, permissionId));
+
+  if (existingPermission.length === 0) {
+    throw createError.notFound("Permission not found", {
+      error: "No permission found with the provided ID",
+      hint: "Please check the permission ID and try again.",
+    });
+  }
+
+  return deletePermissionsByIds([permissionId]);
+};
+
+export const bulkDeletePermissionsService = async (ids: number[]) => {
+  if (ids.length === 0) {
+    throw createError.validation("No permission IDs provided", {
+      error: "The ids array is empty",
+      hint: "Please provide at least one permission ID to delete.",
+    });
+  }
+
+  return deletePermissionsByIds(ids);
 };

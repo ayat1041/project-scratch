@@ -18,6 +18,8 @@ export interface UpdateUserInput {
   profileImage?: string | null;
   isVerified?: boolean;
   isDeleted?: boolean;
+  userOrigin?: string;
+  invitedBy?: string | null;
 }
 
 /**

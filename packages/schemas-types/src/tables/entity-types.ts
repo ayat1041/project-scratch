@@ -16,3 +16,8 @@ export type { AppCities } from './common-tables/app_cities';
 export type { AppLanguages } from './common-tables/app_languages';
 export type { AppTimezones } from './common-tables/app_timezones';
 export type { AppActivityLogs } from './common-tables/app_activity_logs';
+
+// content
+export type { AppSiteSeoSettingsVersions } from './content/app_site_seo_settings_versions';
+export type { AppSeoPages } from './content/app_seo_pages';
+export type { AppSeoPagesVersions } from './content/app_seo_pages_versions';

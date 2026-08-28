@@ -15,6 +15,8 @@ export interface UserInfoResponse {
   userName: NonNullable<AppUsers["userName"]>;
   profileImage?: Exclude<AppUsers["profileImage"], undefined>;
   providerName: NonNullable<AppUsers["providerName"]>;
+  userOrigin: NonNullable<AppUsers["userOrigin"]>;
+  invitedBy?: Exclude<AppUsers["invitedBy"], undefined>;
   isVerified: NonNullable<AppUsers["isVerified"]>;
   isDeleted: NonNullable<AppUsers["isDeleted"]>;
   registeredAt: NonNullable<AppUsers["registeredAt"]>;
@@ -57,6 +59,8 @@ export const getUserByIdWithRolesAndPermissions = async (
       userName: appUsersTable.userName,
       profileImage: appUsersTable.profileImage,
       providerName: appUsersTable.providerName,
+      userOrigin: appUsersTable.userOrigin,
+      invitedBy: appUsersTable.invitedBy,
       isVerified: appUsersTable.isVerified,
       isDeleted: appUsersTable.isDeleted,
       registeredAt: appUsersTable.registeredAt,
@@ -81,6 +85,8 @@ export const getUserByIdWithRolesAndPermissions = async (
       appUsersTable.userName,
       appUsersTable.profileImage,
       appUsersTable.providerName,
+      appUsersTable.userOrigin,
+      appUsersTable.invitedBy,
       appUsersTable.isVerified,
       appUsersTable.isDeleted,
       appUsersTable.registeredAt,
@@ -104,6 +110,8 @@ export const getUserByIdWithRolesAndPermissions = async (
     password: user.password,
     profileImage: user.profileImage,
     providerName: user.providerName,
+    userOrigin: user.userOrigin,
+    invitedBy: user.invitedBy,
     isVerified: user.isVerified,
     isDeleted: user.isDeleted,
     registeredAt: user.registeredAt,
@@ -128,6 +136,8 @@ export const getUserByEmailWithRolesAndPermissions = async (
       userName: appUsersTable.userName,
       profileImage: appUsersTable.profileImage,
       providerName: appUsersTable.providerName,
+      userOrigin: appUsersTable.userOrigin,
+      invitedBy: appUsersTable.invitedBy,
       isVerified: appUsersTable.isVerified,
       isDeleted: appUsersTable.isDeleted,
       registeredAt: appUsersTable.registeredAt,
@@ -154,6 +164,8 @@ export const getUserByEmailWithRolesAndPermissions = async (
       appUsersTable.userName,
       appUsersTable.profileImage,
       appUsersTable.providerName,
+      appUsersTable.userOrigin,
+      appUsersTable.invitedBy,
       appUsersTable.isVerified,
       appUsersTable.isDeleted,
       appUsersTable.registeredAt,
@@ -177,6 +189,8 @@ export const getUserByEmailWithRolesAndPermissions = async (
     password: user.password,
     profileImage: user.profileImage,
     providerName: user.providerName,
+    userOrigin: user.userOrigin,
+    invitedBy: user.invitedBy,
     isVerified: user.isVerified,
     isDeleted: user.isDeleted,
     registeredAt: user.registeredAt,

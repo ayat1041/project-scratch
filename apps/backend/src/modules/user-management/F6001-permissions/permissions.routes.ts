@@ -1,6 +1,8 @@
 import { RequestHandler, Router } from "express";
 import {
+  bulkDeletePermissionsController,
   createPermissionsController,
+  deleteSinglePermissionController,
   getSinglePermissionController,
   listAllPermissionsController,
   updateSinglePermissionController,
@@ -62,6 +64,37 @@ router.patch(
     RATELIMITING_VALUES.ADMIN.UPDATE_PERMISSION,
   ),
   updateSinglePermissionController as RequestHandler,
+);
+
+// Bulk delete — flat path, no :id param, body: { ids: number[] }
+router.delete(
+  "/",
+  isAuthenticated(),
+  csrfProtection(),
+  hasPermission(
+    PERMISSIONS.ADMIN.DELETE_PERMISSION,
+    undefined,
+    ROUTE_ACCESS_TYPE.ADMIN,
+  ) as RequestHandler,
+  rateLimitingOnIndividualUserAndIp(
+    RATELIMITING_VALUES.ADMIN.DELETE_PERMISSION,
+  ),
+  bulkDeletePermissionsController as RequestHandler,
+);
+
+router.delete(
+  "/:id",
+  isAuthenticated(),
+  csrfProtection(),
+  hasPermission(
+    PERMISSIONS.ADMIN.DELETE_PERMISSION,
+    undefined,
+    ROUTE_ACCESS_TYPE.ADMIN,
+  ) as RequestHandler,
+  rateLimitingOnIndividualUserAndIp(
+    RATELIMITING_VALUES.ADMIN.DELETE_PERMISSION,
+  ),
+  deleteSinglePermissionController as RequestHandler,
 );
 
 export default router;

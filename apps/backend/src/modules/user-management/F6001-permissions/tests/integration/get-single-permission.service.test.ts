@@ -33,8 +33,8 @@ after(async () => {
 test("getSinglePermissionService - returns permission by id", async () => {
   const result = await getSinglePermissionService(String(testPermissionId));
 
-  assert.equal(result.length, 1);
-  assert.equal(result[0]!.id, testPermissionId);
+  assert.equal(result.permission.id, testPermissionId);
+  assert.deepEqual(result.roles, []);
 });
 
 test("getSinglePermissionService - throws NOT_FOUND for unknown id", async () => {

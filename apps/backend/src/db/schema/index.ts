@@ -17,4 +17,9 @@ export { default as appStatesTable } from "@/db/schema/common-tables/app_states"
 export { default as appCitiesTable } from "@/db/schema/common-tables/app_cities";
 export { default as appTimezonesTable } from "@/db/schema/common-tables/app_timezones";
 
+// content
+export { default as appSiteSeoSettingsVersionsTable } from "@/db/schema/content/app_site_seo_settings_versions";
+export { default as appSeoPagesTable } from "@/db/schema/content/app_seo_pages";
+export { default as appSeoPagesVersionsTable } from "@/db/schema/content/app_seo_pages_versions";
+
 export * from "@/db/schema/relations";

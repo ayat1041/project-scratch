@@ -3,6 +3,8 @@ import { relations } from "drizzle-orm";
 import appUsersTable from "@/db/schema/user-management/app_users";
 import appRolesTable from "@/db/schema/user-management/app_roles";
 import appUserRolesTable from "@/db/schema/user-management/app_user_roles";
+import appSeoPages from "@/db/schema/content/app_seo_pages";
+import appSeoPagesVersions from "@/db/schema/content/app_seo_pages_versions";
 
 // Relations for appUsersTable
 export const usersTableRelations = relations(appUsersTable, ({ many }) => ({
@@ -25,6 +27,22 @@ export const userRolesTableRelations = relations(
     role: one(appRolesTable, {
       fields: [appUserRolesTable.roleId],
       references: [appRolesTable.id],
+    }),
+  }),
+);
+
+// Relations for appSeoPages
+export const seoPagesTableRelations = relations(appSeoPages, ({ many }) => ({
+  versions: many(appSeoPagesVersions),
+}));
+
+// Relations for appSeoPagesVersions
+export const seoPagesVersionsTableRelations = relations(
+  appSeoPagesVersions,
+  ({ one }) => ({
+    page: one(appSeoPages, {
+      fields: [appSeoPagesVersions.pageId],
+      references: [appSeoPages.id],
     }),
   }),
 );

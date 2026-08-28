@@ -3,10 +3,109 @@ import {
   appPermissionsTable,
   appPermissionToRolesTable,
   appRolesTable,
+  appUserRolesTable,
 } from "@/db/schema";
 import { createError } from "@/middleware/error.middleware";
 import { invalidateAllUsersCache } from "@/utils/cache-invalidation.utils";
-import { desc, eq, sql } from "drizzle-orm";
+import { getUserByIdWithRolesAndPermissions } from "@/domain/users/models/users/users.queries";
+import { PERMISSIONS, ROLES } from "@repo/constants";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
+
+const ADMINISTRATION_ACCESS = PERMISSIONS.ADMIN.ADMINISTRATION_ACCESS;
+
+const getAdministrationAccessPermissionId = async (): Promise<number | null> => {
+  const [row] = await db
+    .select({ id: appPermissionsTable.id })
+    .from(appPermissionsTable)
+    .where(eq(appPermissionsTable.name, ADMINISTRATION_ACCESS));
+  return row?.id ?? null;
+};
+
+const userHasAdminAccessViaOtherRole = async (
+  userId: string,
+  excludingRoleId: number,
+): Promise<boolean> => {
+  const rows = await db
+    .select({ roleId: appRolesTable.id })
+    .from(appUserRolesTable)
+    .innerJoin(appRolesTable, eq(appUserRolesTable.roleId, appRolesTable.id))
+    .innerJoin(
+      appPermissionToRolesTable,
+      eq(appRolesTable.id, appPermissionToRolesTable.roleId),
+    )
+    .innerJoin(
+      appPermissionsTable,
+      eq(appPermissionToRolesTable.permissionId, appPermissionsTable.id),
+    )
+    .where(
+      and(
+        eq(appUserRolesTable.userId, userId),
+        eq(appPermissionsTable.name, ADMINISTRATION_ACCESS),
+        ne(appRolesTable.id, excludingRoleId),
+      ),
+    );
+
+  return rows.length > 0;
+};
+
+/**
+ * Self-lockout guard: blocks an admin from removing ADMINISTRATION_ACCESS
+ * from a role they currently hold when they have no other admin-granting
+ * role. Scoped to the acting user only — does not attempt to check whether
+ * *other* users assigned to this role would also lose admin access.
+ */
+const assertNotSelfLockout = async (
+  roleId: number,
+  actingUserId: string,
+  retainsAdminAccess: boolean,
+) => {
+  if (retainsAdminAccess) return;
+
+  const [actingUserHasThisRole] = await db
+    .select({ userId: appUserRolesTable.userId })
+    .from(appUserRolesTable)
+    .where(
+      and(
+        eq(appUserRolesTable.userId, actingUserId),
+        eq(appUserRolesTable.roleId, roleId),
+      ),
+    );
+
+  if (!actingUserHasThisRole) return;
+
+  const hasOtherAdminRole = await userHasAdminAccessViaOtherRole(actingUserId, roleId);
+  if (!hasOtherAdminRole) {
+    throw createError.validation(
+      "You cannot remove your own administration access",
+      {
+        error: "This change would remove ADMINISTRATION_ACCESS from your only admin-granting role",
+        hint: "Assign yourself another admin role first, or have another admin make this change.",
+      },
+    );
+  }
+};
+
+/**
+ * Privilege-escalation guard: only a caller who currently holds SUPER_ADMIN
+ * may create/edit a role that grants ADMINISTRATION_ACCESS.
+ */
+const assertCanGrantAdministrationAccess = async (
+  actingUserId: string,
+  willGrantAdminAccess: boolean,
+) => {
+  if (!willGrantAdminAccess) return;
+
+  const actingUser = await getUserByIdWithRolesAndPermissions(actingUserId);
+  if (!actingUser?.roles.includes(ROLES.SUPER_ADMIN)) {
+    throw createError.forbidden(
+      "Only a super admin can create or edit a role that grants administration access",
+      {
+        error: "Caller does not hold the super_admin role",
+        hint: "Ask a super admin to make this change.",
+      },
+    );
+  }
+};
 
 type ListRolesParams = {
   search?: string;
@@ -32,6 +131,8 @@ export const listAllRolesService = async ({
       id: appRolesTable.id,
       name: appRolesTable.name,
       description: appRolesTable.description,
+      scope: appRolesTable.scope,
+      isSystemRole: appRolesTable.isSystemRole,
       createdAt: appRolesTable.createdAt,
       updatedAt: appRolesTable.updatedAt,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,6 +167,8 @@ export const listAllRolesService = async ({
       appRolesTable.id,
       appRolesTable.name,
       appRolesTable.description,
+      appRolesTable.scope,
+      appRolesTable.isSystemRole,
       appRolesTable.createdAt,
       appRolesTable.updatedAt,
     )
@@ -117,11 +220,10 @@ export const getSingleRoleService = async (id: string) => {
   };
 };
 
-export const createRoleService = async ({
-  name,
-  description,
-  permissions,
-}: UpsertRoleParams) => {
+export const createRoleService = async (
+  { name, description, permissions }: UpsertRoleParams,
+  actingUserId: string,
+) => {
   const roleExists = await db
     .select()
     .from(appRolesTable)
@@ -140,6 +242,10 @@ export const createRoleService = async ({
       hint: "Please provide at least one valid permission ID.",
     });
   }
+
+  const adminAccessPermissionId = await getAdministrationAccessPermissionId();
+  const willGrantAdminAccess = adminAccessPermissionId != null && permissions.includes(adminAccessPermissionId);
+  await assertCanGrantAdministrationAccess(actingUserId, willGrantAdminAccess);
 
   const newRole = await db
     .insert(appRolesTable)
@@ -162,6 +268,7 @@ export const createRoleService = async ({
 export const updateSingleRoleService = async (
   id: string,
   { name, description, permissions }: UpsertRoleParams,
+  actingUserId: string,
 ) => {
   const roleExists = await db
     .select()
@@ -197,6 +304,12 @@ export const updateSingleRoleService = async (
     });
   }
 
+  const adminAccessPermissionId = await getAdministrationAccessPermissionId();
+  const willGrantAdminAccess = adminAccessPermissionId != null && permissions.includes(adminAccessPermissionId);
+  const retainsAdminAccess = adminAccessPermissionId == null || willGrantAdminAccess;
+  await assertNotSelfLockout(+id, actingUserId, retainsAdminAccess);
+  await assertCanGrantAdministrationAccess(actingUserId, willGrantAdminAccess);
+
   const updatedRole = await db
     .update(appRolesTable)
     .set({ name, description })
@@ -223,7 +336,7 @@ export const updateSingleRoleService = async (
   return updatedRole;
 };
 
-export const deleteSingleRoleService = async (id: string) => {
+export const deleteSingleRoleService = async (id: string, actingUserId: string) => {
   const roleExists = await db
     .select()
     .from(appRolesTable)
@@ -236,14 +349,25 @@ export const deleteSingleRoleService = async (id: string) => {
     });
   }
 
-  await db
-    .delete(appRolesTable)
-    .where(sql`${appRolesTable.id} = ${sql.param(id)}`)
-    .execute();
+  if (roleExists[0].isSystemRole) {
+    throw createError.conflict("System roles cannot be deleted", {
+      error: "The requested role is a protected system role",
+      hint: "System roles are required for the platform to function and cannot be removed.",
+    });
+  }
 
+  await assertNotSelfLockout(+id, actingUserId, false);
+
+  // Delete the join rows before the role row — app_permission_to_roles has no
+  // ON DELETE cascade on role_id, so deleting the role first violates its FK.
   await db
     .delete(appPermissionToRolesTable)
     .where(sql`${appPermissionToRolesTable.roleId} = ${sql.param(id)}`)
+    .execute();
+
+  await db
+    .delete(appRolesTable)
+    .where(sql`${appRolesTable.id} = ${sql.param(id)}`)
     .execute();
 
   await invalidateAllUsersCache();
