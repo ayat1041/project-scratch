@@ -1,21 +1,14 @@
-export default function AdminUsersPage() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-        <p className="text-muted-foreground">
-          Manage platform users and accounts
-        </p>
-      </div>
+import type { Metadata } from 'next';
+import UsersPresenter from '@modules/users/components/Presenter';
 
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="text-center">
-          <h2 className="mb-2 text-xl font-semibold">Coming Soon</h2>
-          <p className="text-muted-foreground">
-            User management features will be available here
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+export const metadata: Metadata = {
+  title: 'Users',
+};
+
+interface UsersPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default function AdminUsersPage({ searchParams }: UsersPageProps) {
+  return <UsersPresenter searchParams={searchParams} />;
 }

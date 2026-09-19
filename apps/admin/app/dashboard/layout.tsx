@@ -18,7 +18,9 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
         )}
       >
         <AdminPortalHeader />
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto">
+          <div className="mx-auto w-full max-w-7xl p-6 md:p-8">{children}</div>
+        </main>
       </div>
     </div>
   );

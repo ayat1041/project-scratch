@@ -8,6 +8,13 @@
       "when": 1787732736385,
       "tag": "0000_wealthy_norman_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787846550099,
+      "tag": "0001_sloppy_devos",
+      "breakpoints": true
     }
   ]
 }

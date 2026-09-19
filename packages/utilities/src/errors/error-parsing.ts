@@ -90,3 +90,33 @@ export function getErrorMessage(error: unknown, fallback: string): string {
 export function createApiError(message: string, status: number) {
     return Object.assign(new Error(message), { status, statusCode: status });
 }
+
+/**
+ * Converts a ZodError into a plain Error with a readable message; every other
+ * error is re-thrown unchanged. Used in the service layer's catch block so
+ * callers only ever handle plain Errors (or API errors from createApiError),
+ * never a ZodError shape.
+ *
+ * @example
+ * try {
+ *   const validated = schema.parse(payload);
+ *   return await api.doSomething(validated);
+ * } catch (error) {
+ *   wrapZodError(error);
+ * }
+ */
+export function wrapZodError(error: unknown): never {
+    if (
+        error &&
+        typeof error === 'object' &&
+        'issues' in error &&
+        Array.isArray((error as { issues: unknown }).issues)
+    ) {
+        const issues = (error as { issues: { path: (string | number)[]; message: string }[] }).issues;
+        const message = issues
+            .map((issue) => (issue.path.length ? `${issue.path.join('.')}: ${issue.message}` : issue.message))
+            .join(', ');
+        throw new Error(message || 'Validation failed');
+    }
+    throw error;
+}

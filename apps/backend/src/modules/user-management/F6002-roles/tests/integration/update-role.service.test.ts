@@ -19,6 +19,9 @@ let targetRoleName = "";
 let otherRoleName = "";
 let seed = 0;
 const uid = () => `${Date.now()}-${++seed}`;
+// Placeholder acting-user id — these tests never touch ADMINISTRATION_ACCESS
+// permissions, so the self-lockout/privilege-escalation guards are no-ops here.
+const testActingUserId = "00000000-0000-0000-0000-000000000000";
 
 before(async () => {
   const [permA] = await db
@@ -88,11 +91,15 @@ after(async () => {
 });
 
 test("updateSingleRoleService - updates role and refreshes permission mappings", async () => {
-  const result = await updateSingleRoleService(String(targetRoleId), {
-    name: targetRoleName,
-    description: "updated target description",
-    permissions: [firstPermissionId, secondPermissionId],
-  });
+  const result = await updateSingleRoleService(
+    String(targetRoleId),
+    {
+      name: targetRoleName,
+      description: "updated target description",
+      permissions: [firstPermissionId, secondPermissionId],
+    },
+    testActingUserId,
+  );
 
   assert.equal(result.length, 1);
   assert.equal(result[0]!.id, targetRoleId);
@@ -123,11 +130,15 @@ test("updateSingleRoleService - updates role and refreshes permission mappings",
 test("updateSingleRoleService - throws NOT_FOUND for unknown role id", async () => {
   await assert.rejects(
     () =>
-      updateSingleRoleService("999999999", {
-        name: `role-not-found-${uid()}`,
-        description: "missing role",
-        permissions: [firstPermissionId],
-      }),
+      updateSingleRoleService(
+        "999999999",
+        {
+          name: `role-not-found-${uid()}`,
+          description: "missing role",
+          permissions: [firstPermissionId],
+        },
+        testActingUserId,
+      ),
     (err: ApiError) => {
       assert.equal(err.type, ERROR_TYPES.NOT_FOUND);
       return true;
@@ -138,11 +149,15 @@ test("updateSingleRoleService - throws NOT_FOUND for unknown role id", async () 
 test("updateSingleRoleService - throws VALIDATION when name belongs to another role", async () => {
   await assert.rejects(
     () =>
-      updateSingleRoleService(String(targetRoleId), {
-        name: otherRoleName,
-        description: "duplicate name update",
-        permissions: [firstPermissionId],
-      }),
+      updateSingleRoleService(
+        String(targetRoleId),
+        {
+          name: otherRoleName,
+          description: "duplicate name update",
+          permissions: [firstPermissionId],
+        },
+        testActingUserId,
+      ),
     (err: ApiError) => {
       assert.equal(err.type, ERROR_TYPES.VALIDATION);
       return true;
@@ -153,11 +168,15 @@ test("updateSingleRoleService - throws VALIDATION when name belongs to another r
 test("updateSingleRoleService - throws VALIDATION when permissions are empty", async () => {
   await assert.rejects(
     () =>
-      updateSingleRoleService(String(targetRoleId), {
-        name: targetRoleName,
-        description: "empty permissions",
-        permissions: [],
-      }),
+      updateSingleRoleService(
+        String(targetRoleId),
+        {
+          name: targetRoleName,
+          description: "empty permissions",
+          permissions: [],
+        },
+        testActingUserId,
+      ),
     (err: ApiError) => {
       assert.equal(err.type, ERROR_TYPES.VALIDATION);
       return true;

@@ -15,6 +15,10 @@ let testPermissionId: number;
 const createdRoleIds: number[] = [];
 let seed = 0;
 const uid = () => `${Date.now()}-${++seed}`;
+// Placeholder acting-user id — the tests below never touch ADMINISTRATION_ACCESS
+// permissions, so the self-lockout/privilege-escalation guards are no-ops here
+// and don't require a real app_users row.
+const testActingUserId = "00000000-0000-0000-0000-000000000000";
 
 before(async () => {
   const [permission] = await db
@@ -45,11 +49,14 @@ after(async () => {
 test("createRoleService - creates role and role-permission mappings", async () => {
   const roleName = `user-management.role.create.${uid()}`;
 
-  const created = await createRoleService({
-    name: roleName,
-    description: "created in integration test",
-    permissions: [testPermissionId],
-  });
+  const created = await createRoleService(
+    {
+      name: roleName,
+      description: "created in integration test",
+      permissions: [testPermissionId],
+    },
+    testActingUserId,
+  );
 
   assert.equal(created.length, 1);
   const roleId = created[0]!.id;
@@ -70,20 +77,26 @@ test("createRoleService - creates role and role-permission mappings", async () =
 
 test("createRoleService - throws VALIDATION when role name already exists", async () => {
   const roleName = `user-management.role.duplicate.${uid()}`;
-  const first = await createRoleService({
-    name: roleName,
-    description: "first role",
-    permissions: [testPermissionId],
-  });
+  const first = await createRoleService(
+    {
+      name: roleName,
+      description: "first role",
+      permissions: [testPermissionId],
+    },
+    testActingUserId,
+  );
   createdRoleIds.push(first[0]!.id);
 
   await assert.rejects(
     () =>
-      createRoleService({
-        name: roleName,
-        description: "duplicate role",
-        permissions: [testPermissionId],
-      }),
+      createRoleService(
+        {
+          name: roleName,
+          description: "duplicate role",
+          permissions: [testPermissionId],
+        },
+        testActingUserId,
+      ),
     (err: ApiError) => {
       assert.equal(err.type, ERROR_TYPES.VALIDATION);
       return true;
@@ -94,11 +107,14 @@ test("createRoleService - throws VALIDATION when role name already exists", asyn
 test("createRoleService - throws VALIDATION when permissions are empty", async () => {
   await assert.rejects(
     () =>
-      createRoleService({
-        name: `user-management.role.no-permissions.${uid()}`,
-        description: "invalid role",
-        permissions: [],
-      }),
+      createRoleService(
+        {
+          name: `user-management.role.no-permissions.${uid()}`,
+          description: "invalid role",
+          permissions: [],
+        },
+        testActingUserId,
+      ),
     (err: ApiError) => {
       assert.equal(err.type, ERROR_TYPES.VALIDATION);
       return true;

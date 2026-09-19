@@ -1,6 +1,7 @@
 import { Express } from "express";
 import { permissionsRoutes } from "@/modules/user-management/F6001-permissions/index";
 import { rolesRoutes } from "@/modules/user-management/F6002-roles/index";
+import { usersRoutes } from "@/modules/user-management/F6003-users/index";
 import cronJobsRoutes from "@/modules/platform/F9001-cron-jobs/cron-jobs.routes";
 import languageRoutesV1 from "@/modules/common/F5004-languages/language.routes";
 import countryRoutesV1 from "@/modules/common/F5001-countries/countries.routes";
@@ -10,6 +11,9 @@ import searchLocationRoutes from "@/modules/common/F5007-search-location/search-
 // F5008 (activity-logs) is intentionally not mounted yet — see
 // packages/constants/src/modules/features/features.ts for why it's "in-progress".
 
+import { seoSettingsRoutes } from "@/modules/content/F7001-site-seo-settings/index";
+import { seoPagesRoutes } from "@/modules/content/F7002-seo-pages/index";
+
 import authRoutesV1 from "@/modules/auth/auth.routes";
 
 export const registerRoutes = (app: Express) => {
@@ -18,6 +22,7 @@ export const registerRoutes = (app: Express) => {
   // User management routes
   app.use("/api/user-management/v1/permissions", permissionsRoutes);
   app.use("/api/user-management/v1/roles", rolesRoutes);
+  app.use("/api/user-management/v1/users", usersRoutes);
 
   // Cron jobs management routes
   app.use("/api/cron-jobs", cronJobsRoutes);
@@ -36,4 +41,8 @@ export const registerRoutes = (app: Express) => {
 
   // location search routes
   app.use("/api/common/v1/search-location", searchLocationRoutes);
+
+  // site content / SEO routes
+  app.use("/api/content/v1/seo-settings", seoSettingsRoutes);
+  app.use("/api/content/v1/seo-pages", seoPagesRoutes);
 };

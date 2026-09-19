@@ -71,6 +71,14 @@ export const RATELIMITING_VALUES = {
       time: 300,
       maxRequests: 5,
     }), // 5 minutes, 5 users (admin only)
+    UPDATE_USER_ROLES: getRateLimit({
+      time: 60,
+      maxRequests: 20,
+    }), // 1 minute, 20 role reassignments
+    UPDATE_USER_STATUS: getRateLimit({
+      time: 60,
+      maxRequests: 20,
+    }), // 1 minute, 20 status changes
   },
 
   // Admin Operations
@@ -96,6 +104,10 @@ export const RATELIMITING_VALUES = {
       time: 60,
       maxRequests: 20,
     }), // 1 minute, 20 updates
+    DELETE_PERMISSION: getRateLimit({
+      time: 60,
+      maxRequests: 10,
+    }), // 1 minute, 10 deletions
 
     // Cron Job Management
     CRON_JOB_OPERATION: getRateLimit({
@@ -114,5 +126,34 @@ export const RATELIMITING_VALUES = {
       time: 10,
       maxRequests: 50,
     }), // 10 seconds, 50 requests
+  },
+
+  // Content / SEO Module
+  CONTENT: {
+    // Public reads — served on every anonymous frontend page render, so kept generous.
+    PUBLIC_READ: getRateLimit({
+      time: 60,
+      maxRequests: 300,
+    }), // 1 minute, 300 requests
+    SAVE_DRAFT: getRateLimit({
+      time: 60,
+      maxRequests: 30,
+    }), // 1 minute, 30 saves
+    PUBLISH: getRateLimit({
+      time: 60,
+      maxRequests: 10,
+    }), // 1 minute, 10 publishes
+    RESTORE_VERSION: getRateLimit({
+      time: 60,
+      maxRequests: 10,
+    }), // 1 minute, 10 restores
+    CREATE_PAGE: getRateLimit({
+      time: 60,
+      maxRequests: 20,
+    }), // 1 minute, 20 pages
+    DELETE_PAGE: getRateLimit({
+      time: 60,
+      maxRequests: 20,
+    }), // 1 minute, 20 deletions
   },
 };
